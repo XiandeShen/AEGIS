@@ -50,73 +50,113 @@
             border-bottom: 0.5px solid rgba(0,0,0,0.05);
         }
 
-        .brand { display: flex; align-items: center; gap: 10px; }
+        .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
         .brand-logo { color: var(--accent); display: flex; align-items: center; }
         .brand-name { font-size: 19px; font-weight: 800; letter-spacing: 0.25em; text-transform: uppercase; color: #1d1d1f; }
 
-        .header-actions { display: flex; gap: 12px; visibility: hidden; }
+        .header-actions { 
+            display: flex; gap: 10px; visibility: hidden; align-items: center; flex: 1; justify-content: flex-end; margin-left: 12px;
+            transition: gap 0.4s;
+        }
+        
+        /* 搜索框容器 */
+        .search-wrapper {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+            padding: 0 10px;
+            width: 40px;
+            height: 40px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        /* 移动端优化逻辑 */
+        @media (max-width: 767px) {
+            .header-actions.search-active { gap: 0; } /* 展开时消除按钮间距 */
+            
+            .header-actions.search-active .action-btn {
+                width: 0;
+                margin: 0;
+                padding: 0;
+                opacity: 0;
+                border: none;
+                pointer-events: none;
+            }
+            .header-actions.search-active .search-wrapper {
+                flex-grow: 1;
+                background: #fff;
+                box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+            }
+        }
+
+        /* PC端：保持固定宽度 */
+        @media (min-width: 768px) {
+            .search-wrapper { width: 240px; }
+            .search-wrapper:focus-within { background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.05); }
+        }
+
+        .search-input {
+            border: none;
+            background: transparent;
+            height: 100%;
+            width: 100%;
+            padding: 0 8px;
+            font-size: 16px;
+            outline: none;
+            margin: 0;
+            color: #1d1d1f;
+        }
+        
+        .search-icon { color: var(--secondary); flex-shrink: 0; display: flex; align-items: center; }
+
+        .search-clear {
+            color: var(--secondary);
+            cursor: pointer;
+            padding: 4px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s;
+        }
+        .search-clear:hover { color: var(--danger); }
+        .search-wrapper.has-content .search-clear { display: flex; }
+
         .action-btn {
             width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
             cursor: pointer; border-radius: 12px; 
             background: rgba(255, 255, 255, 0.5);
             border: 1px solid rgba(0, 0, 0, 0.05); 
-            transition: all 0.2s;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            overflow: hidden;
         }
 
+        /* 列表与卡片 */
         .page-wrapper {
             width: 100%; max-width: 1000px; margin: 0 auto;
             padding: calc(110px + env(safe-area-inset-top)) var(--side-gap) 40px;
             min-height: 100vh; 
         }
 
-        #list-container { 
-            display: grid; 
-            grid-template-columns: 100%; 
-            gap: 16px; 
-            width: 100%;
-            text-align: center;
-        }
-        @media (min-width: 768px) { 
-            #list-container { grid-template-columns: repeat(2, 1fr); gap: 20px; } 
-        }
+        #list-container { display: grid; grid-template-columns: 100%; gap: 16px; width: 100%; text-align: center; }
+        @media (min-width: 768px) { #list-container { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
 
-        .status-msg {
-            grid-column: 1 / -1; 
-            width: 100%;
-            padding: 60px 0;
-            color: var(--secondary);
-            font-size: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+        .status-msg { grid-column: 1 / -1; width: 100%; padding: 60px 0; color: var(--secondary); font-size: 15px; display: flex; justify-content: center; align-items: center; }
 
         .item-card, .glass-card { 
-            background: var(--glass-bg); 
-            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-            border-radius: var(--radius-lg); 
-            border: var(--glass-border); 
-            box-shadow: var(--card-shadow);
-            width: 100%;
-            text-align: left;
+            background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: var(--radius-lg); border: var(--glass-border); box-shadow: var(--card-shadow);
+            width: 100%; text-align: left;
         }
 
-        .item-card { 
-            padding: 22px; 
-            display: flex; 
-            flex-direction: column; 
-            transition: transform 0.2s; 
-            position: relative; 
-        }
+        .item-card { padding: 22px; display: flex; flex-direction: column; transition: transform 0.2s; position: relative; }
         .item-card:active { transform: scale(0.98); }
 
-        .card-actions { 
-            position: absolute; 
-            top: 18px; 
-            right: 18px; 
-            display: flex; 
-            gap: 2px; 
-        }
+        .card-actions { position: absolute; top: 18px; right: 18px; display: flex; gap: 2px; }
 
         .card-info { flex: 1; width: 100%; padding-right: 110px; } 
         .item-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin:0; font-size:18px; font-weight: 700; color: #1d1d1f; }
@@ -125,17 +165,10 @@
         .item-user, .pass-val { font-size:13px; font-family: ui-monospace, monospace; word-break: break-all; }
         .item-user { color:var(--secondary); margin: 0; }
         
-        .pass-val { 
-            color: var(--accent); 
-            filter: blur(5px); opacity: 0.3; transition: all 0.3s ease; user-select: none;
-        }
+        .pass-val { color: var(--accent); filter: blur(5px); opacity: 0.3; transition: all 0.3s ease; user-select: none; }
         .item-card.revealed .pass-val { filter: blur(0); opacity: 1; user-select: text; }
 
-        .tool-btn { 
-            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
-            border: none; background: transparent; color: var(--secondary); cursor: pointer; 
-            border-radius: 8px; transition: all 0.2s;
-        }
+        .tool-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: var(--secondary); cursor: pointer; border-radius: 8px; transition: all 0.2s; }
         .tool-btn.active { color: var(--accent); background: rgba(0, 122, 255, 0.1); }
 
         .item-note { margin:10px 0 0 0; padding-top: 10px; border-top: 0.5px solid rgba(0,0,0,0.05); font-size:12px; color: var(--secondary); opacity: 0.8; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -143,46 +176,16 @@
         .auth-viewport { display: flex; align-items: center; justify-content: center; min-height: 100vh; width: 100%; padding: 0 var(--side-gap); }
         .glass-card { padding: 32px 24px; width: 100%; max-width: 340px; text-align: center; }
 
-        input { 
-            width: 100%; height: 50px; padding: 0 16px; margin: 8px 0; border-radius: var(--radius-md); 
-            border: 1px solid rgba(0,0,0,0.08); font-size: 16px; outline: none;
-            background: rgba(255,255,255,0.6); transition: all 0.2s; -webkit-appearance: none;
-        }
+        input { width: 100%; height: 50px; padding: 0 16px; margin: 8px 0; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.08); font-size: 16px; outline: none; background: rgba(255,255,255,0.6); transition: all 0.2s; -webkit-appearance: none; }
         input:focus { border-color: var(--accent); background: #fff; }
 
-        .primary-btn { 
-            width: 100%; height: 50px; background: var(--accent); border: none; border-radius: var(--radius-md); 
-            color: white; font-size: 16px; font-weight: 600; margin-top: 12px; cursor: pointer; transition: all 0.2s;
-            -webkit-appearance: none;
-        }
+        .primary-btn { width: 100%; height: 50px; background: var(--accent); border: none; border-radius: var(--radius-md); color: white; font-size: 16px; font-weight: 600; margin-top: 12px; cursor: pointer; transition: all 0.2s; -webkit-appearance: none; }
         .primary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .modal-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.25); 
-            z-index: 200; display: none; align-items: center; justify-content: center; 
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 0 var(--side-gap);
-        }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.25); z-index: 200; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 0 var(--side-gap); }
 
-        /* 修复后的 Toast 样式 */
-        #toast { 
-            position: fixed; 
-            bottom: 50px; 
-            left: 50%; 
-            transform: translateX(-50%) translateY(20px); 
-            background: rgba(0,0,0,0.85); 
-            color: white; 
-            padding: 12px 24px; 
-            border-radius: 24px; 
-            font-size: 14px; 
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); 
-        }
-        #toast.show { 
-            opacity: 1;
-            transform: translateX(-50%) translateY(0); 
-        }
+        #toast { position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(0,0,0,0.85); color: white; padding: 12px 24px; border-radius: 24px; font-size: 14px; z-index: 1000; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
@@ -199,7 +202,15 @@
         <div class="brand-name">AEGIS</div>
     </div>
     <div class="header-actions" id="actions">
-        <div class="action-btn" onclick="startSync()" style="color:var(--accent)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
+        <div class="search-wrapper" id="search-wrapper">
+            <div class="search-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <input type="text" id="search-bar" class="search-input" placeholder="搜索..." oninput="handleSearchUI(this)" onfocus="handleSearchUI(this)" onblur="handleSearchUI(this)">
+            <div class="search-clear" onclick="clearSearch()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+        </div>
         <div class="action-btn" onclick="openAddModal()" style="color:var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
         <div class="action-btn" onclick="softLock()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
     </div>
@@ -247,7 +258,6 @@
     </div>
 </div>
 
-<!-- 移除默认文字防止闪现 -->
 <div id="toast"></div>
 
 <script>
@@ -256,6 +266,24 @@
     const ENCRYPTED_TK = localStorage.getItem('ae_enc_tk');
     let deleteTargetId = null;
     let currentEditId = null;
+    let CACHED_LIST = []; 
+
+    function handleSearchUI(input) {
+        const wrapper = document.getElementById('search-wrapper');
+        const actions = document.getElementById('actions');
+        const hasText = input.value.length > 0;
+        const isFocused = document.activeElement === input;
+        if (hasText) wrapper.classList.add('has-content'); else wrapper.classList.remove('has-content');
+        if (isFocused || hasText) actions.classList.add('search-active'); else actions.classList.remove('search-active');
+        handleSearch(input.value);
+    }
+
+    function clearSearch() {
+        const input = document.getElementById('search-bar');
+        input.value = '';
+        input.focus();
+        handleSearchUI(input);
+    }
 
     function generateFavicon() {
         const svg = btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 12 12 22 12 22Z M9 12L11 14L15 10"/></svg>`);
@@ -302,7 +330,8 @@
                 GIST_ID = db.id;
                 localStorage.setItem('ae_gid', GIST_ID);
                 const detail = await (await fetch(db.url, { headers: { Authorization: `token ${FINAL_TOKEN}` } })).json();
-                render(JSON.parse(detail.files['aegis_db.json'].content || "[]"));
+                const content = JSON.parse(detail.files['aegis_db.json'].content || "[]");
+                render(content);
             } else {
                 const createResp = await fetch('https://api.github.com/gists', {
                     method: 'POST',
@@ -319,9 +348,10 @@
         }
     }
 
-    function render(list) {
+    function render(list, isSearching = false) {
+        if (!isSearching) CACHED_LIST = list; 
         const c = document.getElementById('list-container');
-        c.innerHTML = list.length ? '' : '<div class="status-msg">暂无凭据</div>';
+        c.innerHTML = list.length ? '' : `<div class="status-msg">${isSearching ? '未找到相关凭据' : '暂无凭据'}</div>`;
         list.sort((a,b)=>b.id-a.id).forEach(item => {
             const div = document.createElement('div');
             div.className = 'item-card';
@@ -346,22 +376,16 @@
         });
     }
 
-    function openAddModal() {
-        currentEditId = null;
-        document.getElementById('modal-title').innerText = "新增凭据";
-        ['add-name','add-user','add-pass','add-note'].forEach(i => document.getElementById(i).value='');
-        toggleModal('add-modal', true);
+    function handleSearch(val) {
+        const query = (val || "").toLowerCase().trim();
+        if (!query) { render(CACHED_LIST); return; }
+        const filtered = CACHED_LIST.filter(item => item.name.toLowerCase().includes(query) || (item.user && item.user.toLowerCase().includes(query)) || (item.note && item.note.toLowerCase().includes(query)));
+        render(filtered, true);
     }
 
-    function openEditModal(item) {
-        currentEditId = item.id;
-        document.getElementById('modal-title').innerText = "修改凭据";
-        document.getElementById('add-name').value = item.name;
-        document.getElementById('add-user').value = item.user;
-        document.getElementById('add-pass').value = item.pass;
-        document.getElementById('add-note').value = item.note || '';
-        toggleModal('add-modal', true);
-    }
+    function openAddModal() { currentEditId = null; document.getElementById('modal-title').innerText = "新增凭据"; ['add-name','add-user','add-pass','add-note'].forEach(i => document.getElementById(i).value=''); toggleModal('add-modal', true); }
+
+    function openEditModal(item) { currentEditId = item.id; document.getElementById('modal-title').innerText = "修改凭据"; document.getElementById('add-name').value = item.name; document.getElementById('add-user').value = item.user; document.getElementById('add-pass').value = item.pass; document.getElementById('add-note').value = item.note || ''; toggleModal('add-modal', true); }
 
     async function save() { 
         const name = document.getElementById('add-name').value.trim(); 
@@ -380,17 +404,12 @@
                 list.push({name, user, pass, note, id: Date.now()}); 
             }
             await updateCloud(list); 
+            clearSearch(); 
             toggleModal('add-modal', false); 
-        } catch (e) { showToast("同步失败"); } finally {
-            saveBtn.disabled = false; saveBtn.innerText = "同步至云端";
-        }
+        } catch (e) { showToast("同步失败"); } finally { saveBtn.disabled = false; saveBtn.innerText = "同步至云端"; }
     }
 
-    function togglePass(id, btn) { 
-        document.getElementById('card-' + id).classList.toggle('revealed'); 
-        btn.classList.toggle('active');
-    }
-    
+    function togglePass(id, btn) { document.getElementById('card-' + id).classList.toggle('revealed'); btn.classList.toggle('active'); }
     function toggleModal(id, show) { document.getElementById(id + '-overlay').style.display = show ? 'flex' : 'none'; }
 
     function confirmDelete(id) { 
@@ -402,39 +421,19 @@
                 let list = await getLatest(); 
                 list = list.filter(i => i.id != deleteTargetId); 
                 await updateCloud(list); 
-            } finally {
-                this.disabled = false;
-                toggleModal('confirm-modal', false); 
-            }
+                clearSearch(); 
+            } finally { this.disabled = false; toggleModal('confirm-modal', false); }
         }; 
     }
 
-    async function getLatest() { 
-        const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, { headers: { Authorization: `token ${FINAL_TOKEN}` }}); 
-        const data = await r.json();
-        return JSON.parse(data.files['aegis_db.json'].content || "[]"); 
-    }
+    async function getLatest() { const r = await fetch(`https://api.github.com/gists/${GIST_ID}`, { headers: { Authorization: `token ${FINAL_TOKEN}` }}); const data = await r.json(); return JSON.parse(data.files['aegis_db.json'].content || "[]"); }
 
-    async function updateCloud(list) { 
-        await fetch(`https://api.github.com/gists/${GIST_ID}`, { 
-            method: 'PATCH', 
-            headers: { Authorization: `token ${FINAL_TOKEN}`, 'Content-Type': 'application/json' }, 
-            body: JSON.stringify({ files: { "aegis_db.json": { content: JSON.stringify(list) } } }) 
-        }); 
-        render(list); 
-        showToast("已同步"); 
-    }
+    async function updateCloud(list) { await fetch(`https://api.github.com/gists/${GIST_ID}`, { method: 'PATCH', headers: { Authorization: `token ${FINAL_TOKEN}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ files: { "aegis_db.json": { content: JSON.stringify(list) } } }) }); render(list); showToast("已同步"); }
 
     function softLock() { location.reload(); }
     function hardReset() { localStorage.clear(); location.reload(); }
     function copy(t) { navigator.clipboard.writeText(t); showToast("已复制"); }
-    
-    function showToast(m) { 
-        const t=document.getElementById('toast'); 
-        t.innerText=m; 
-        t.classList.add('show'); 
-        setTimeout(()=>t.classList.remove('show'), 2000); 
-    }
+    function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000); }
 </script>
 </body>
 </html>

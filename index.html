@@ -6,7 +6,7 @@
     <title>Aegis - Encrypted</title>
     <link id="favicon" rel="icon" type="image/svg+xml">
     <style>
-        /* 保持你原始的所有样式不变 */
+        /* 保持原始样式完全不动 */
         * { box-sizing: border-box; }
         :root {
             --bg-base: #f5f5f7; --accent: #007aff; --danger: #ff3b30; --secondary: #86868b;
@@ -147,12 +147,17 @@
     let FINAL_TOKEN = "", GIST_ID = localStorage.getItem('ae_gid'), ENCRYPTED_TK = localStorage.getItem('ae_enc_tk');
     let deleteTargetId = null, currentEditId = null, CACHED_LIST = []; 
 
-    // 原有的 UI 事件监听保持不变
+    // 修复PC端搜索框与按钮点击冲突的逻辑
     document.addEventListener('click', (e) => {
         const bar = document.getElementById('search-bar');
         const wrapper = document.getElementById('search-wrapper');
-        if (wrapper && !wrapper.contains(e.target) && bar.value === "") { bar.blur(); }
+        // 关键点：如果点击的是操作按钮，不执行失焦，确保按钮点击事件能被第一时间捕获
+        const isToolBtn = e.target.closest('.tool-btn'); 
+        if (wrapper && !wrapper.contains(e.target) && bar && bar.value === "" && !isToolBtn) { 
+            bar.blur(); 
+        }
     });
+
     window.addEventListener('touchmove', () => {
         const bar = document.getElementById('search-bar');
         if (bar === document.activeElement && bar.value === "") { bar.blur(); }
@@ -173,7 +178,6 @@
         input.focus();
     }
 
-    // Render 函数保持不变，只负责展示
     function render(list, isSearching = false) {
         if (!isSearching) CACHED_LIST = list; 
         const c = document.getElementById('list-container');
@@ -228,11 +232,9 @@
     function toggleModal(id, show) { document.getElementById(id + '-overlay').style.display = show ? 'flex' : 'none'; }
     function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000); }
 
-    // 核心 Auth 流程：引入派生密钥
     async function handleAuth() {
         const pass = document.getElementById('main-pass').value; if (!pass) return;
-        await CryptoSvc.deriveKey(pass); // 初始化密钥
-
+        await CryptoSvc.deriveKey(pass);
         if (!ENCRYPTED_TK) {
             const tk = document.getElementById('gh-token').value.trim(); 
             if (!tk.startsWith('ghp_')) { showToast("Token无效"); return; }
@@ -248,7 +250,7 @@
     }
 
     async function startSync() {
-        const container = document.getElementById('list-container'); container.innerHTML = '<div class="status-msg">同步并解密中...</div>';
+        const container = document.getElementById('list-container'); container.innerHTML = '<div class="status-msg">同步中...</div>';
         try {
             const resp = await fetch('https://api.github.com/gists', { headers: { 'Authorization': `token ${FINAL_TOKEN}` } });
             const data = await resp.json(); const db = data.find(g => g.files['aegis_db.json']);
@@ -263,7 +265,7 @@
                 }
                 render(list);
             } else { startSyncNew(); }
-        } catch(e) { container.innerHTML = '<div class="status-msg">连接失败或解析错误</div>'; }
+        } catch(e) { container.innerHTML = '<div class="status-msg">同步失败</div>'; }
     }
 
     async function startSyncNew() {
@@ -273,7 +275,7 @@
                 body: JSON.stringify({ description: "Aegis Data", public: false, files: { "aegis_db.json": { content: "[]" } } })
             });
             const data = await res.json(); GIST_ID = data.id; localStorage.setItem('ae_gid', GIST_ID); render([]);
-        } catch(e) { showToast("初始化Gist失败"); }
+        } catch(e) { showToast("初始化失败"); }
     }
 
     function handleSearch(val) { const query = (val || "").toLowerCase().trim(); if (!query) { render(CACHED_LIST); return; } render(CACHED_LIST.filter(item => item.name.toLowerCase().includes(query) || (item.user && item.user.toLowerCase().includes(query))), true); }
@@ -282,7 +284,7 @@
         const name = document.getElementById('add-name').value.trim(), pass = document.getElementById('add-pass').value.trim(); if(!name || !pass) return;
         const saveBtn = document.getElementById('save-btn'); 
         const originalText = saveBtn.innerText;
-        saveBtn.disabled = true; saveBtn.innerText = "正在同步...";
+        saveBtn.disabled = true; saveBtn.innerText = "同步中...";
         try { 
             let list = await getLatest(); 
             if (currentEditId) { 
@@ -311,7 +313,7 @@
             headers: { Authorization: `token ${FINAL_TOKEN}` }, 
             body: JSON.stringify({ files: { "aegis_db.json": { content: encryptedData } } }) 
         }); 
-        render(list); showToast("已加密同步"); 
+        render(list); showToast("已同步"); 
     }
 
     function hardReset() { localStorage.clear(); location.reload(); }

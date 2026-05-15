@@ -24,7 +24,7 @@
 
         body, html {
             margin: 0; padding: 0; width: 100%; min-height: 100%;
-            background-color: var(--bg-base); /* 确保基础底色统一 */
+            background-color: var(--bg-base);
             color: #1d1d1f;
             font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -66,7 +66,6 @@
         .page-wrapper {
             width: 100%; max-width: 1000px; margin: 0 auto;
             padding: calc(110px + env(safe-area-inset-top)) var(--side-gap) 40px;
-            /* 修复：确保容器至少满屏高度，遮住底层背景色差 */
             min-height: 100vh; 
         }
 
@@ -84,7 +83,7 @@
         .status-msg {
             grid-column: 1 / -1; 
             width: 100%;
-            padding: 60px 0; /* 增加上下填充，平衡视觉中心 */
+            padding: 60px 0;
             color: var(--secondary);
             font-size: 15px;
             display: flex;
@@ -164,11 +163,26 @@
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 0 var(--side-gap);
         }
 
+        /* 修复后的 Toast 样式 */
         #toast { 
-            position: fixed; bottom: -80px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: white; 
-            padding: 12px 24px; border-radius: 24px; font-size: 14px; transition: 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); z-index: 1000;
+            position: fixed; 
+            bottom: 50px; 
+            left: 50%; 
+            transform: translateX(-50%) translateY(20px); 
+            background: rgba(0,0,0,0.85); 
+            color: white; 
+            padding: 12px 24px; 
+            border-radius: 24px; 
+            font-size: 14px; 
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); 
         }
-        #toast.show { bottom: 50px; }
+        #toast.show { 
+            opacity: 1;
+            transform: translateX(-50%) translateY(0); 
+        }
     </style>
 </head>
 <body>
@@ -233,10 +247,10 @@
     </div>
 </div>
 
-<div id="toast">已完成</div>
+<!-- 移除默认文字防止闪现 -->
+<div id="toast"></div>
 
 <script>
-    /* JavaScript 逻辑保持完全不变 */
     let FINAL_TOKEN = "";
     let GIST_ID = localStorage.getItem('ae_gid');
     const ENCRYPTED_TK = localStorage.getItem('ae_enc_tk');
@@ -414,9 +428,11 @@
     function softLock() { location.reload(); }
     function hardReset() { localStorage.clear(); location.reload(); }
     function copy(t) { navigator.clipboard.writeText(t); showToast("已复制"); }
+    
     function showToast(m) { 
         const t=document.getElementById('toast'); 
-        t.innerText=m; t.classList.add('show'); 
+        t.innerText=m; 
+        t.classList.add('show'); 
         setTimeout(()=>t.classList.remove('show'), 2000); 
     }
 </script>

@@ -6,7 +6,7 @@
     <title>Aegis - Encrypted</title>
     <link id="favicon" rel="icon" type="image/svg+xml">
     <style>
-        /* 保持原始样式完全不动 */
+        /* 保持原始核心样式不动 */
         * { box-sizing: border-box; }
         :root {
             --bg-base: #f5f5f7; --accent: #007aff; --danger: #ff3b30; --secondary: #86868b;
@@ -26,16 +26,25 @@
             background-size: 400% 400%; animation: gradientFlow 15s ease-in-out infinite; z-index: -1;
         }
         @keyframes gradientFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        
+        /* 顶部导航栏 */
         header {
             position: fixed; top: 0; left: 0; width: 100%;
             padding: calc(18px + env(safe-area-inset-top)) var(--side-gap) 15px;
             z-index: 100; display: flex; justify-content: space-between; align-items: center;
-            background: rgba(245, 245, 247, 0.8); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-            border-bottom: 0.5px solid rgba(0,0,0,0.05);
+            background: rgba(245, 245, 247, 0.85); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
         }
-        .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; transition: opacity 0.25s ease; }
         .brand-logo { color: var(--accent); display: flex; align-items: center; }
         .brand-name { font-size: 19px; font-weight: 800; letter-spacing: 0.25em; text-transform: uppercase; }
+        
+        /* 联动控制：当登录界面显示时，隐藏顶部栏的 LOGO 和字 */
+        body:has(#auth-ui[style*="display: flex"]) header .brand,
+        body:has(#auth-ui:not([style*="display: none"])) header .brand {
+            opacity: 0;
+            pointer-events: none;
+        }
+
         .header-actions { display: flex; gap: 10px; visibility: hidden; align-items: center; flex: 1; justify-content: flex-end; margin-left: 12px; }
         .search-wrapper { display: flex; align-items: center; background: rgba(0, 0, 0, 0.05); border-radius: 12px; width: 40px; height: 40px; overflow: hidden; position: relative; }
         .search-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--secondary); flex-shrink: 0; }
@@ -49,7 +58,24 @@
         @media (min-width: 768px) { .search-wrapper { width: 200px; transition: none; } .search-wrapper:focus-within { background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.05); } .search-input { width: 100%; padding-right: 10px; } }
         .search-wrapper.has-content .search-clear { display: flex; }
         .action-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 12px; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(0, 0, 0, 0.05); flex-shrink: 0; }
-        .page-wrapper { width: 100%; max-width: 1000px; margin: 0 auto; min-height: 100vh; padding: calc(110px + env(safe-area-inset-top)) var(--side-gap) 40px; }
+        
+        /* 
+           页面包装容器：寻找到了完美的黄金视距平衡点
+           移动端顶边距缩减至 76px 加上安全区域，消除断层感；大屏自适应调整为 96px。
+        */
+        .page-wrapper { 
+            width: 100%; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            min-height: 100vh; 
+            padding: calc(76px + env(safe-area-inset-top)) var(--side-gap) 40px; 
+        }
+        @media (min-width: 768px) {
+            .page-wrapper {
+                padding-top: calc(96px + env(safe-area-inset-top));
+            }
+        }
+
         #list-container { display: grid; grid-template-columns: 100%; gap: 16px; }
         @media (min-width: 768px) { #list-container { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
         .item-card { background: var(--glass-bg); backdrop-filter: var(--glass-blur); border-radius: var(--radius-lg); border: var(--glass-border); box-shadow: var(--card-shadow); padding: 22px; position: relative; transition: transform 0.2s; }
@@ -64,6 +90,8 @@
         .tool-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: var(--secondary); cursor: pointer; border-radius: 8px; }
         .tool-btn.active { color: var(--accent); background: rgba(0, 122, 255, 0.1); }
         .item-note { margin:10px 0 0 0; padding-top: 10px; border-top: 0.5px solid rgba(0,0,0,0.05); font-size:12px; color: var(--secondary); opacity: 0.8; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* 认证视窗容器 */
         .auth-viewport { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 0 var(--side-gap); }
         .glass-card { background: var(--glass-bg); backdrop-filter: var(--glass-blur); border-radius: var(--radius-lg); border: var(--glass-border); padding: 32px 24px; width: 100%; max-width: 340px; text-align: center; }
         input { width: 100%; height: 50px; padding: 0 16px; margin: 8px 0; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.08); font-size: 16px; outline: none; background: rgba(255,255,255,0.6); }
@@ -73,6 +101,111 @@
         #toast { position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(0,0,0,0.85); color: white; padding: 12px 24px; border-radius: 24px; z-index: 1000; opacity: 0; pointer-events: none; transition: all 0.4s; }
         #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .status-msg { width: 100%; padding: 60px 0; color: var(--secondary); text-align: center; grid-column: 1/-1; }
+
+        /* ==================== 极简卡片布局细节打磨 ==================== */
+        #login-card {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.01), 
+                        0 24px 60px -8px rgba(0, 0, 0, 0.05), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            max-width: 360px;
+            min-height: 290px;
+            padding: 28px;
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: stretch;
+            text-align: left;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .card-brand-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .card-brand-logo {
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+        }
+        .card-brand-name {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.25em;
+            color: #1d1d1f;
+        }
+
+        #login-card h2 {
+            display: none; 
+        }
+
+        .auth-form-body {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        #login-card input {
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 15px;
+            height: 50px;
+            font-size: 15px;
+            color: #1d1d1f;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.01);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #login-card input::placeholder {
+            color: #a1a1a6;
+        }
+        #login-card input:focus {
+            background: #ffffff;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
+        }
+        #login-card .primary-btn {
+            background: linear-gradient(180deg, #2f91ff 0%, var(--accent) 100%);
+            border-radius: 15px;
+            height: 50px;
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 10px;
+            box-shadow: 0 4px 14px rgba(0, 122, 255, 0.15);
+            transition: all 0.25s ease;
+        }
+        #login-card .primary-btn:hover:not(:disabled) {
+            opacity: 0.95;
+            transform: translateY(-0.5px);
+        }
+        #setup-area {
+            animation: fadeInFlag 0.4s ease forwards;
+        }
+        @keyframes fadeInFlag {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #reset-link {
+            transition: all 0.2s ease !important;
+            font-weight: 500;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: inline-block;
+            text-align: center;
+            margin-top: 12px !important;
+        }
+        #reset-link:hover {
+            opacity: 1 !important;
+            color: var(--danger) !important;
+            background: rgba(255, 59, 48, 0.06);
+        }
+        /* ==================================================================== */
     </style>
 </head>
 <body>
@@ -99,11 +232,23 @@
 
 <div class="auth-viewport" id="auth-ui">
     <div class="glass-card" id="login-card">
-        <h2 style="margin-top:0">解锁保险库</h2>
-        <input type="password" id="main-pass" placeholder="解锁密码" autofocus>
-        <div id="setup-area" style="display:none; margin-top:10px;"><input type="password" id="gh-token" placeholder="GitHub Token"></div>
-        <button class="primary-btn" onclick="handleAuth()">进入 AEGIS</button>
-        <p id="reset-link" style="font-size:12px; color:#86868b; margin-top:25px; cursor:pointer; display:none; opacity:0.6" onclick="toggleModal('hard-reset', true)">重置 Token 配置</p>
+        <!-- 卡片内部左上角的 LOGO + AEGIS 标识 -->
+        <div class="card-brand-header">
+            <div class="card-brand-logo">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 12 12 22 12 22Z"/><path d="M9 12L11 14L15 10"/></svg>
+            </div>
+            <div class="card-brand-name">AEGIS</div>
+        </div>
+
+        <h2>解锁保险库</h2>
+        
+        <!-- 表单输入区域 -->
+        <div class="auth-form-body">
+            <input type="password" id="main-pass" placeholder="解锁密码" autofocus>
+            <div id="setup-area" style="display:none; margin-top:4px;"><input type="password" id="gh-token" placeholder="GitHub Token (ghp_...)"></div>
+            <button class="primary-btn" onclick="handleAuth()">进入系统</button>
+            <p id="reset-link" style="font-size:12px; color:#86868b; margin-top:25px; cursor:pointer; display:none; opacity:0.6" onclick="toggleModal('hard-reset', true)">重置 Token 配置</p>
+        </div>
     </div>
 </div>
 
@@ -147,11 +292,9 @@
     let FINAL_TOKEN = "", GIST_ID = localStorage.getItem('ae_gid'), ENCRYPTED_TK = localStorage.getItem('ae_enc_tk');
     let deleteTargetId = null, currentEditId = null, CACHED_LIST = []; 
 
-    // 修复PC端搜索框与按钮点击冲突的逻辑
     document.addEventListener('click', (e) => {
         const bar = document.getElementById('search-bar');
         const wrapper = document.getElementById('search-wrapper');
-        // 关键点：如果点击的是操作按钮，不执行失焦，确保按钮点击事件能被第一时间捕获
         const isToolBtn = e.target.closest('.tool-btn'); 
         if (wrapper && !wrapper.contains(e.target) && bar && bar.value === "" && !isToolBtn) { 
             bar.blur(); 
@@ -318,7 +461,7 @@
 
     function hardReset() { localStorage.clear(); location.reload(); }
     (function generateFavicon() { const svg = btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 12 12 22 12 22Z M9 12L11 14L15 10"/></svg>`); document.getElementById('favicon').setAttribute('href', `data:image/svg+xml;base64,${svg}`); })();
-    if (!ENCRYPTED_TK) { document.querySelector('#login-card h2').innerText = "初始化配置"; document.getElementById('setup-area').style.display = "block"; } else { document.getElementById('reset-link').style.display = "block"; }
+    if (!ENCRYPTED_TK) { document.querySelector('.card-brand-name').innerText = "AEGIS SETUP"; document.getElementById('setup-area').style.display = "block"; } else { document.getElementById('reset-link').style.display = "block"; }
 </script>
 </body>
 </html>

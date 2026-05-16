@@ -87,7 +87,7 @@
         #list-container { display: grid; grid-template-columns: 100%; gap: 16px; }
         @media (min-width: 768px) { #list-container { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
         
-        /* 主卡片 UI 统一 */
+        /* 主卡片 UI */
         .item-card { 
             background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
             border-radius: var(--radius-lg); border: var(--glass-border); box-shadow: var(--card-shadow); 
@@ -111,7 +111,7 @@
         .auth-viewport { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 0 var(--side-gap); }
         .glass-card { background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border-radius: 30px; border: var(--glass-border); padding: 28px 24px; width: 100%; max-width: 360px; text-align: center; box-shadow: var(--card-shadow); }
         
-        /* 统一的全局表单控件输入样式 */
+        /* 基础独立表单控件样式（如登录页） */
         input, textarea { 
             width: 100%; height: 50px; padding: 0 16px; margin: 8px 0; 
             border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.05); 
@@ -123,14 +123,14 @@
         input::placeholder, textarea::placeholder { color: #a1a1a6; }
         input:focus, textarea:focus { background: #ffffff; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12); }
         
-        textarea.add-note-input { height: 90px; padding: 14px 16px; resize: none; line-height: 1.4; word-break: break-all; }
+        textarea.add-note-input { height: 90px; padding: 14px 16px; resize: none; line-height: 1.4; word-break: break-all; overflow-y: auto; }
         
         .primary-btn { width: 100%; height: 50px; background: linear-gradient(180deg, #2f91ff 0%, var(--accent) 100%); border: none; border-radius: var(--radius-md); color: white; font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 14px rgba(0, 122, 255, 0.15); transition: opacity 0.3s, transform 0.2s; }
         .primary-btn:hover:not(:disabled) { opacity: 0.95; }
         .primary-btn:active:not(:disabled) { transform: scale(0.98); }
         .primary-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 
-        /* 全局统一的二级浮窗遮罩结构 */
+        /* 全局统一的二级页面遮罩 */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0, 0, 0, 0.15); z-index: 200; display: none; 
@@ -140,7 +140,7 @@
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
         }
         
-        /* 全局统一的二级浮窗大卡片容器（PC 与 移动端全面融合） */
+        /* 全局二级弹窗大容器 */
         .page-modal-content { 
             width: 100%; max-width: 420px; display: flex; flex-direction: column; text-align: left;
             background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
@@ -157,7 +157,6 @@
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        /* 自适应小屏幕移动端微调：保持苹果原生设置流表单视感 */
         @media (max-width: 480px) {
             .modal-overlay { background: #f5f5f7; padding: calc(20px + env(safe-area-inset-top)) var(--side-gap) 40px; align-items: flex-start; backdrop-filter: none; -webkit-backdrop-filter: none; }
             .page-modal-content { max-height: 100%; box-shadow: none; border: none; padding: 12px 0; background: transparent; animation: none; overflow-y: visible; }
@@ -172,16 +171,42 @@
         .modal-icon-wrapper.danger-style { color: var(--danger); background: rgba(255, 59, 48, 0.08); }
         .page-modal-content h3 { font-size: 22px; font-weight: 700; color: #1d1d1f; margin: 0; letter-spacing: -0.5px; }
 
-        /* 统一的多行包裹框容器（新增组件与详情组件全面归一） */
+        /* 统一的群组白色卡片容器（添加、编辑页面专用样式组） */
         .apple-group-box {
-            background: rgba(255, 255, 255, 0.8); border-radius: 18px; padding: 4px 16px;
+            background: rgba(255, 255, 255, 0.85); border-radius: 18px; padding: 0 16px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.01); margin-bottom: 24px;
             border: 1px solid rgba(0, 0, 0, 0.03);
+            display: flex; flex-direction: column;
         }
-        /* 当在苹果容器内时，去除控件自带的边框，使其融合为连贯的流式列表组件 */
-        .apple-group-box input, .apple-group-box textarea { background: transparent !important; border: none !important; margin: 0 !important; padding: 0 !important; border-radius: 0 !important; height: 52px; font-size: 16px; box-shadow: none !important; }
-        .apple-group-box input:not(:last-child), .apple-group-box textarea { border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important; }
-        .apple-group-box textarea.add-note-input { height: 95px; padding: 14px 0 !important; }
+        
+        /* 核心修复：彻底洗掉通用输入框自带的深灰色背景、高度、内边距与外边距，回归无缝流式列表 */
+        .apple-group-box input, .apple-group-box textarea { 
+            background: transparent !important; 
+            border: none !important; 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            border-radius: 0 !important; 
+            height: 52px !important; 
+            font-size: 16px !important; 
+            box-shadow: none !important; 
+        }
+        /* 增加流畅的分割线环境 */
+        .apple-group-box input:not(:last-child) { 
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important; 
+        }
+        /* 完美兼容多行输入容器的独立自适应高度 */
+        .apple-group-box textarea.add-note-input { 
+            height: 95px !important; 
+            padding: 14px 0 !important; 
+            border-top: 1px solid rgba(0, 0, 0, 0.04) !important;
+        }
+
+        /* 隐藏【添加/编辑】输入框内部多出来的原生滚动条 */
+        .apple-group-box textarea::-webkit-scrollbar { width: 5px; }
+        .apple-group-box textarea::-webkit-scrollbar-track { background: transparent; }
+        .apple-group-box textarea::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0); border-radius: 10px; transition: background 0.25s ease; }
+        .apple-group-box:hover textarea::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); }
+        .apple-group-box textarea::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25) !important; }
 
         /* 双按钮交互动作栏 */
         .modal-action-row { display: flex; gap: 12px; width: 100%; margin-top: 8px; }
@@ -189,8 +214,8 @@
         .modal-action-row .secondary-text-btn { background: rgba(0, 0, 0, 0.04); color: #1d1d1f; transition: background 0.2s, transform 0.1s; }
         .modal-action-row .secondary-text-btn:active { background: rgba(0, 0, 0, 0.08); transform: scale(0.98); }
 
-        /* 统一化的详情展示单元流容器 */
-        .info-cell-group { background: rgba(255, 255, 255, 0.8); border-radius: 18px; padding: 0 16px; border: 1px solid rgba(0, 0, 0, 0.03); margin-bottom: 24px; }
+        /* 详情数据列表单元流 */
+        .info-cell-group { background: rgba(255, 255, 255, 0.85); border-radius: 18px; padding: 0 16px; border: 1px solid rgba(0, 0, 0, 0.03); margin-bottom: 24px; }
         .info-cell { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; cursor: pointer; transition: opacity 0.2s; }
         .info-cell:not(:last-child) { border-bottom: 1px solid rgba(0, 0, 0, 0.04); }
         .info-cell:active { opacity: 0.6; }
@@ -203,8 +228,8 @@
             overflow: hidden; text-overflow: ellipsis; max-height: 120px; overflow-y: auto; 
         }
 
-        /* 隐藏 PC 端备注框的丑陋粗体滚动条，保持全站隐形高级感 */
-        .info-cell-value::-webkit-scrollbar { width: 4px; }
+        /* 隐藏【详情面板】备注框的滚动条 */
+        .info-cell-value::-webkit-scrollbar { width: 5px; }
         .info-cell-value::-webkit-scrollbar-track { background: transparent; }
         .info-cell-value::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0); border-radius: 10px; transition: background 0.25s ease; }
         .info-cell:hover .info-cell-value::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); }
@@ -218,7 +243,7 @@
         #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
         .status-msg { width: 100%; padding: 60px 0; color: var(--secondary); text-align: center; grid-column: 1/-1; font-size: 15px; }
 
-        /* 解锁卡片细节统合 */
+        /* 解锁面板组件微调 */
         #login-card h2 { display: none; }
         .card-brand-header { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; justify-content: center; }
         .card-brand-logo { color: var(--accent); display: flex; align-items: center; }

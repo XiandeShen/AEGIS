@@ -73,8 +73,9 @@
         .search-wrapper.has-content .search-clear { display: flex; }
         .action-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 12px; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(0, 0, 0, 0.05); flex-shrink: 0; }
         
-        .page-wrapper { width: 100%; max-width: 1000px; margin: 0 auto; min-height: 100vh; padding: calc(76px + env(safe-area-inset-top)) var(--side-gap) 40px; }
-        @media (min-width: 768px) { .page-wrapper { padding-top: calc(96px + env(safe-area-inset-top)); } }
+        /* 移动端首张卡片遮挡修复 */
+        .page-wrapper { width: 100%; max-width: 1000px; margin: 0 auto; min-height: 100vh; padding: calc(96px + env(safe-area-inset-top)) var(--side-gap) 40px; }
+        @media (min-width: 768px) { .page-wrapper { padding-top: calc(106px + env(safe-area-inset-top)); } }
 
         #list-container { display: grid; grid-template-columns: 100%; gap: 16px; }
         @media (min-width: 768px) { #list-container { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
@@ -144,19 +145,52 @@
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
+        /* ─── 核心优化点：在移动端下让二级菜单的对应功能文字与图标，在尺寸排版上完全和底层 brand 重合 ─── */
         @media (max-width: 480px) {
-            .modal-overlay { background: #f5f5f7; padding: calc(20px + env(safe-area-inset-top)) var(--side-gap) 40px; align-items: flex-start; }
-            .page-modal-content { max-height: 100%; box-shadow: none; border: none; padding: 12px 0; background: transparent; animation: none; overflow-y: visible; }
+            .modal-overlay { 
+                background: #f5f5f7; 
+                padding: calc(18px + env(safe-area-inset-top)) var(--side-gap) 40px; 
+                align-items: flex-start; 
+            }
+            .page-modal-content { max-height: 100%; box-shadow: none; border: none; padding: 0; background: transparent; animation: none; overflow-y: visible; }
+            
+            .modal-page-header { 
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important; 
+                gap: 10px !important; /* 图标与文本的间距与 brand 的 gap 10px 完美重合 */
+                margin-bottom: 24px !important; 
+                padding: 0 !important;
+            }
+            .modal-icon-wrapper { 
+                background: transparent !important; 
+                box-shadow: none !important; 
+                width: auto !important; 
+                height: auto !important; 
+                display: flex !important;
+                align-items: center !important;
+                color: var(--accent) !important; 
+            }
+            /* 图标尺寸大小强行修正并锁定在 24px，与 header 的 brand-logo 完美重合 */
+            .modal-icon-wrapper svg { width: 24px !important; height: 24px !important; }
+            
+            /* 功能文字（查看凭据、编辑凭据等）：字体大小（19px）、字重（800）和字间距（0.25em）完全复刻底层 brand-name 规范 */
+            .page-modal-content h3 { 
+                font-size: 19px !important; 
+                font-weight: 800 !important; 
+                letter-spacing: 0.25em !important; 
+                text-transform: uppercase !important; 
+                color: #1d1d1f !important; 
+                margin: 0 !important;
+            }
         }
 
-        .modal-page-header { margin-bottom: 24px; display: flex; flex-direction: row; align-items: center; gap: 14px; padding-left: 2px; }
-        .modal-icon-wrapper { 
-            width: 44px; height: 44px; border-radius: 12px; 
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-            background: #f5f5f7; box-shadow: 0 2px 8px rgba(0,0,0,0.02); color: var(--accent);
+        @media (min-width: 481px) {
+            .modal-page-header { margin-bottom: 24px; display: flex; flex-direction: row; align-items: center; gap: 14px; padding-left: 2px; }
+            .modal-icon-wrapper { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #f5f5f7; box-shadow: 0 2px 8px rgba(0,0,0,0.02); color: var(--accent); }
+            .modal-icon-wrapper svg { width: 24px; height: 24px; }
+            .page-modal-content h3 { font-size: 22px; font-weight: 700; color: #1d1d1f; margin: 0; letter-spacing: -0.5px; }
         }
-        .modal-icon-wrapper.danger-style { color: var(--danger); background: rgba(255, 59, 48, 0.08); }
-        .page-modal-content h3 { font-size: 22px; font-weight: 700; color: #1d1d1f; margin: 0; letter-spacing: -0.5px; }
 
         /* “上标下文”分栏排版布局 */
         .apple-group-box, .info-cell-group {
@@ -325,7 +359,7 @@
     <div class="page-modal-content">
         <div class="modal-page-header">
             <div class="modal-icon-wrapper" id="add-modal-icon-container"></div>
-            <h3 id="modal-title">凭据操作</h3>
+            <h3 id="modal-title">新增凭据</h3>
         </div>
         <div class="apple-group-box">
             <div class="info-block-item editable-box">
@@ -370,10 +404,10 @@
 <div class="modal-overlay" id="pass-modal-overlay">
     <div class="page-modal-content">
         <div class="modal-page-header">
-            <div class="modal-icon-wrapper">
+            <div class="modal-icon-wrapper" id="pass-modal-icon-container">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
             </div>
-            <h3>凭据详情</h3>
+            <h3 id="detail-modal-title">凭据详情</h3>
         </div>
         
         <div class="info-cell-group">
@@ -439,9 +473,8 @@
     };
 
     let FINAL_TOKEN = "", GIST_ID = localStorage.getItem('ae_gid'), ENCRYPTED_TK = localStorage.getItem('ae_enc_tk');
-    let currentEditId = null, CACHED_LIST = []; 
+    let pendingDeleteCardId = null, currentEditId = null, CACHED_LIST = []; 
     let lastScrollY = 0; 
-    let pendingDeleteCardId = null; 
 
     // 全局点击监听
     document.addEventListener('click', (e) => {
@@ -450,11 +483,7 @@
         const isDelBtn = e.target.closest('.tool-btn[data-del-btn]'); 
         
         if (wrapper && !wrapper.contains(e.target) && bar && bar.value === "" && !e.target.closest('.tool-btn')) { bar.blur(); }
-        
-        /* ─── 核心修改点：如果用户第二次点击了【除了当前这个待删X按钮】的任意位置，一律强制恢复 ─── */
-        if (pendingDeleteCardId && !isDelBtn) {
-            clearPendingDelete();
-        }
+        if (pendingDeleteCardId && !isDelBtn) { clearPendingDelete(); }
     });
 
     document.addEventListener('touchmove', (e) => {
@@ -524,7 +553,6 @@
         pendingDeleteCardId = null;
     }
 
-    // 闭环的物理确认逻辑
     async function confirmDelete(id) { 
         const targetCard = document.getElementById(`card-${id}`);
         const targetBtn = document.getElementById(`del-btn-${id}`);
@@ -539,7 +567,6 @@
             return; 
         }
         
-        // 两次点击都是同一个按钮，完美通畅执行删除
         try { 
             showToast("正在同步删除...");
             let list = await getLatest(); 
@@ -553,6 +580,7 @@
     }
 
     function showDetails(item) {
+        document.getElementById('detail-modal-title').innerText = "凭据详情";
         document.getElementById('detail-name').innerText = item.name || '-';
         document.getElementById('detail-user').innerText = item.user || '-';
         document.getElementById('detail-pass').innerText = item.pass || '-';
@@ -580,8 +608,24 @@
         }).catch(() => showToast("复制失败"));
     }
 
-    function openAddModal() { currentEditId = null; document.getElementById('modal-title').innerText = "新增凭据"; document.getElementById('add-modal-icon-container').innerHTML = SVGIcons.filePlus; ['add-name','add-user','add-pass','add-note'].forEach(i => document.getElementById(i).value=''); toggleModal('add-modal', true); }
-    function openEditModal(item) { currentEditId = item.id; document.getElementById('modal-title').innerText = "修改凭据"; document.getElementById('add-modal-icon-container').innerHTML = SVGIcons.editPencil; document.getElementById('add-name').value = item.name; document.getElementById('add-user').value = item.user; document.getElementById('add-pass').value = item.pass; document.getElementById('add-note').value = item.note || ''; toggleModal('add-modal', true); }
+    function openAddModal() { 
+        currentEditId = null; 
+        document.getElementById('modal-title').innerText = "新增凭据";
+        document.getElementById('add-modal-icon-container').innerHTML = SVGIcons.filePlus;
+        ['add-name','add-user','add-pass','add-note'].forEach(i => document.getElementById(i).value=''); 
+        toggleModal('add-modal', true); 
+    }
+    
+    function openEditModal(item) { 
+        currentEditId = item.id; 
+        document.getElementById('modal-title').innerText = "修改凭据"; 
+        document.getElementById('add-modal-icon-container').innerHTML = SVGIcons.editPencil;
+        document.getElementById('add-name').value = item.name; 
+        document.getElementById('add-user').value = item.user; 
+        document.getElementById('add-pass').value = item.pass; 
+        document.getElementById('add-note').value = item.note || ''; 
+        toggleModal('add-modal', true); 
+    }
     
     function softLock() { location.reload(); }
     

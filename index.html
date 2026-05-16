@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Aegis - Encrypted</title>
     <link id="favicon" rel="icon" type="image/svg+xml">
+    
+    <!-- iOS 桌面快捷方式图标 (方形 Apple Touch Icon) -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxZTFlMjQiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMTExMTExIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2JnKSIvPgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDM2LCAzNikgc2NhbGUoNC41KSI+CiAgICA8cGF0aCBkPSJNMTIgMjJDMTIgMjIgMjAgMTggMjAgMTJWNUwxMiAyTDQgNVYxMkM0IDEyIDEyIDIyIDEyIDIyWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDA3YWZmIiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgICA8cGF0aCBkPSJNOSAxMkwxMSAxNEwxNSAxMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDA3YWZmIiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgPC9nPgo8L3N2Zz4=">
+    <!-- iOS 启动界面及应用规范 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Aegis">
+
     <style>
         /* 保持原始核心样式不动 */
         * { box-sizing: border-box; }
@@ -31,7 +39,8 @@
             position: fixed; top: 0; left: 0; width: 100%;
             padding: calc(18px + env(safe-area-inset-top)) var(--side-gap) 15px;
             z-index: 100; display: flex; justify-content: space-between; align-items: center;
-            background: rgba(245, 245, 247, 0.85); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            /* 降低透明度为 0：采用纯不透明纯色背景，移除模糊滤镜，保证完全遮挡滚动内容 */
+            background: #f5f5f7;
         }
         .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; transition: opacity 0.25s ease; }
         .brand-logo { color: var(--accent); display: flex; align-items: center; }
@@ -115,7 +124,6 @@
         .glass-card { background: var(--glass-bg); backdrop-filter: var(--glass-blur); border-radius: var(--radius-lg); border: var(--glass-border); padding: 32px 24px; width: 100%; max-width: 340px; text-align: center; }
         input, textarea { width: 100%; height: 50px; padding: 0 16px; margin: 8px 0; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.08); font-size: 16px; outline: none; background: rgba(255,255,255,0.6); font-family: inherit; }
         
-        /* 优化编辑状态下的备注输入框：支持自动换行与滚动 */
         textarea.add-note-input { 
             height: 80px; 
             padding: 12px 16px; 
@@ -189,7 +197,6 @@
         #reset-link { transition: all 0.2s ease !important; font-weight: 500; padding: 8px 12px; border-radius: 8px; display: inline-block; text-align: center; margin-top: 12px !important; }
         #reset-link:hover { opacity: 1 !important; color: var(--danger) !important; background: rgba(255, 59, 48, 0.06); }
 
-        /* 详情弹窗中的密码显示样式 */
         .pass-display-content {
             text-align: center;
             font-size: 20px;
@@ -207,7 +214,6 @@
             user-select: text;
         }
 
-        /* 详情弹窗中的备注包裹层样式 */
         .pass-note-wrapper {
             text-align: left;
             margin-top: 12px;
@@ -275,12 +281,10 @@
 
 <div class="page-wrapper" id="main-ui" style="display:none"><div id="list-container"></div></div>
 
-<!-- 凭据操作模态窗：已将备注 input 升级为可自动换行及滚动的 textarea 并限制了回车换行 -->
 <div class="modal-overlay" id="add-modal-overlay"><div class="glass-card"><h3 id="modal-title">凭据操作</h3><input type="text" id="add-name" placeholder="应用名称"><input type="text" id="add-user" placeholder="用户名"><input type="password" id="add-pass" placeholder="密码"><textarea id="add-note" class="add-note-input" placeholder="备注" onkeydown="if(event.keyCode===13){event.preventDefault();}"></textarea><button class="primary-btn" id="save-btn" onclick="save()">同步至云端</button><button class="primary-btn" style="background:none; color:var(--accent)" onclick="toggleModal('add-modal', false)">取消</button></div></div>
 <div class="modal-overlay" id="confirm-modal-overlay"><div class="glass-card"><h3 style="color:var(--danger)">确认删除？</h3><button class="primary-btn" id="confirm-delete-btn" style="background:var(--danger)">确定删除</button><button class="primary-btn" style="background:none; color:var(--accent)" onclick="toggleModal('confirm-modal', false)">取消</button></div></div>
 <div class="modal-overlay" id="hard-reset-overlay"><div class="glass-card"><h3 style="color:var(--danger)">确定重置吗？</h3><button class="primary-btn" style="background:var(--danger)" onclick="hardReset()">确定重置</button><button class="primary-btn" style="background:none; color:var(--accent)" onclick="toggleModal('hard-reset', false)">取消</button></div></div>
 
-<!-- 凭据详情模态窗：已将密码和备注融合在该弹窗中进行统一集中展示 -->
 <div class="modal-overlay" id="pass-modal-overlay"><div class="glass-card"><h3>凭据详情</h3><div class="pass-display-content" id="pass-content"></div><div class="pass-note-wrapper" id="pass-note-box"><div class="pass-note-title">备注信息</div><div class="pass-note-content" id="pass-note-content"></div></div><button class="primary-btn" id="copy-pass-btn">复制密码</button><button class="primary-btn" style="background:none; color:var(--accent); margin-top: 8px;" onclick="toggleModal('pass-modal', false)">关闭</button></div></div>
 
 <div id="toast"></div>
@@ -356,7 +360,6 @@
             div.className = 'item-card'; div.id = `card-${item.id}`;
             const itemStr = JSON.stringify(item).replace(/"/g, '&quot;');
 
-            // 主页面卡片渲染：移除了查看备注按钮，保留查看密码详情、修改、删除操作
             div.innerHTML = `
                 <div class="card-actions">
                     <button class="tool-btn" onmousedown="event.preventDefault();showDetails(${itemStr})" ontouchstart="event.preventDefault();showDetails(${itemStr})"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11-8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -376,7 +379,6 @@
         });
     }
 
-    // 详情弹窗逻辑：集中在一个窗口显示密码，如果存在备注则联动在下面展示备注
     function showDetails(item) {
         document.getElementById('pass-content').innerText = item.pass;
         

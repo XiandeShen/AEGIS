@@ -498,51 +498,15 @@
         }
     }, { passive: false });
 
-    // ─── 优化核心：移动端键盘弹起时进行位置锚定，消除顶起和闪烁 ───
-    let isMobileSearching = false;
-    function focusSearch() { 
-        const bar = document.getElementById('search-bar');
-        if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
-            const currentScrollY = window.scrollY;
-            isMobileSearching = true;
-            
-            const headerEl = document.querySelector('header');
-            if (headerEl) {
-                headerEl.style.position = 'absolute';
-                headerEl.style.top = currentScrollY + 'px';
-            }
-            
-            bar.focus();
-
-            setTimeout(() => {
-                if (headerEl) {
-                    headerEl.style.position = 'fixed';
-                    headerEl.style.top = '0';
-                }
-                isMobileSearching = false;
-            }, 300);
-        } else {
-            bar.focus(); 
-        }
-    }
-
+    function focusSearch() { document.getElementById('search-bar').focus(); }
     function handleSearchUI(input) {
         const wrapper = document.getElementById('search-wrapper'), actions = document.getElementById('actions');
         const hasText = input.value.length > 0;
         const isFocused = document.activeElement === input;
         if (hasText) wrapper.classList.add('has-content'); else wrapper.classList.remove('has-content');
         if (isFocused || hasText) actions.classList.add('search-active'); else actions.classList.remove('search-active');
-        
-        if (!isMobileSearching) {
-            handleSearch(input.value);
-        } else {
-            clearTimeout(input.searchTimeout);
-            input.searchTimeout = setTimeout(() => {
-                handleSearch(input.value);
-            }, 100);
-        }
+        handleSearch(input.value);
     }
-
     function clearSearch() {
         const input = document.getElementById('search-bar');
         input.value = ''; handleSearchUI(input); input.focus();
@@ -706,6 +670,7 @@
             if (!decryptedTk) return;
         }
         
+        // ─── 核心修改：通过向 body 添加 .unlocked 类，动态优雅地切回列表的高级渐变背板 ───
         document.body.classList.add('unlocked');
 
         document.getElementById('auth-ui').style.display = 'none'; 

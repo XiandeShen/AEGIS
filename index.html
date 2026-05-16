@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Aegis - Encrypted</title>
-    <link id="favicon" rel="icon" type="image/svg+xml">
     
-    <!-- 优化后的 iOS 桌面图标配置 (Apple Touch Icon) -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSAxMDAlIiBmaWxsPSIjMWExYTFlIi8+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTgsIDE4KSBzY2FsZSg2KSI+PHBhdGggZD0iTTEyIDIyQzEyIDIyIDIwIDE4IDIwIDEyVjVMMTIgMkw0IDVWMTJDNCAxMiAxMiAyMiAxMiAyMloiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwN2FmZiIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik05IDEyTDExIDE0TDE1IDEwIiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDdhZmYiIHN0cm9rZS13aWR0aD0iMi41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L2c+PC9zdmc+">
+    <!-- 核心修复：像 GitHub 一样，通过标准的 HTTPS 绝对路径引流，彻底解决 iOS 桌面图标白板问题 -->
+    <link rel="apple-touch-icon" sizes="180x180" href="https://xiandeshen.github.io/aegis/icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://xiandeshen.github.io/aegis/icon.png">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Aegis">
@@ -288,7 +289,6 @@
 <div id="toast"></div>
 
 <script>
-    /** 加密工具模块 **/
     const CryptoSvc = {
         _key: null,
         async deriveKey(pass) {
@@ -518,7 +518,6 @@
     }
 
     function hardReset() { localStorage.clear(); location.reload(); }
-    (function generateFavicon() { const svg = btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 12 12 22 12 22Z M9 12L11 14L15 10"/></svg>`); document.getElementById('favicon').setAttribute('href', `data:image/svg+xml;base64,${svg}`); })();
     if (!ENCRYPTED_TK) { document.querySelector('.card-brand-name').innerText = "AEGIS SETUP"; document.getElementById('setup-area').style.display = "block"; } else { document.getElementById('reset-link').style.display = "block"; }
 </script>
 </body>

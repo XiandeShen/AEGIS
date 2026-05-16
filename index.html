@@ -312,6 +312,31 @@
         }
         #reset-link:hover { opacity: 1 !important; color: var(--danger) !important; }
         #reset-link:active { color: var(--danger) !important; transform: scale(0.97); }
+
+        /* ─── 移动端点击高亮与焦点框完美优化 ─── */
+        button, input, textarea, .action-btn, .tool-btn, .info-block-item {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+        .primary-btn {
+            transition: opacity 0.2s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease !important;
+        }
+        .primary-btn:not(:disabled):active {
+            transform: scale(0.96);
+            opacity: 0.9;
+        }
+        .primary-btn:disabled {
+            opacity: 0.4;
+            transform: scale(1) !important;
+            cursor: not-allowed;
+        }
+        .modal-action-row .secondary-text-btn {
+            transition: background-color 0.2s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .modal-action-row .secondary-text-btn:active {
+            background: rgba(0, 0, 0, 0.08) !important;
+            transform: scale(0.96) !important;
+        }
     </style>
 </head>
 <body>

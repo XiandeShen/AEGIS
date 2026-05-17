@@ -15,9 +15,10 @@
     <style>
         * { box-sizing: border-box; }
         :root {
-            --bg-base: #f5f5f7; --accent: #007aff; --danger: #ff3b30; --secondary: #86868b;
-            --side-gap: 20px; --glass-bg: rgba(255, 255, 255, 0.75); --glass-blur: blur(20px);
-            --glass-border: 1px solid rgba(255, 255, 255, 0.6); --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+            /* 【洗白并提质底色】：更换为更通透、温润的浅暖灰基底，彻底告别死灰、脏色 */
+            --bg-base: #f1f1f4; --accent: #007aff; --danger: #ff3b30; --secondary: #86868b;
+            --side-gap: 20px; --glass-bg: #ffffff; --glass-blur: none;
+            --glass-border: 1px solid rgba(0, 0, 0, 0.05); --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
             --radius-lg: 28px; --radius-md: 14px;
             --font-sans: -apple-system, "SF Pro Display", "SF Pro Text", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
             --font-mono: "SF Pro Text", ui-monospace, SFMono-Regular, SF Pro Icons, "PingFang SC", monospace;
@@ -40,9 +41,10 @@
             -webkit-backdrop-filter: none !important;
         }
 
+        /* 主页动态渐变同步微调，转为高净度的丝滑过渡 */
         .gradient-bg {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, #e2e8f0 0%, #f9fafb 50%, #e2e8f0 100%);
+            background: linear-gradient(135deg, #e3e3e8 0%, #f1f1f4 50%, #e3e3e8 100%);
             background-size: 400% 400%; animation: gradientFlow 15s ease-in-out infinite; z-index: -1;
             display: none; 
         }
@@ -53,7 +55,7 @@
             position: fixed; top: 0; left: 0; width: 100%;
             padding: calc(18px + env(safe-area-inset-top)) var(--side-gap) 15px;
             z-index: 100; display: flex; justify-content: space-between; align-items: center;
-            background: #f5f5f7; 
+            background: #f5f5f7; border-bottom: 1px solid rgba(0, 0, 0, 0.03);
         }
         .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; transition: opacity 0.25s ease; }
         .brand-logo { color: var(--accent); display: flex; align-items: center; }
@@ -63,8 +65,17 @@
         body:has(#auth-ui:not([style*="display: none"])) header .brand { opacity: 0; pointer-events: none; }
 
         .header-actions { display: flex; gap: 10px; visibility: hidden; align-items: center; flex: 1; justify-content: flex-end; margin-left: 12px; }
-        .action-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 12px; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(0, 0, 0, 0.05); flex-shrink: 0; color: #1d1d1f; transition: transform 0.15s ease; }
-        .action-btn:active { transform: scale(0.92); }
+        
+        /* 【核心修改】：右上角三个功能图标完美对齐弹窗二级图标，统一采用高级浅灰 #f2f2f7 皮肤与内敛质感 */
+        .action-btn { 
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; border-radius: 12px; 
+            background: #f2f2f7; 
+            border: 1px solid rgba(0, 0, 0, 0.04); 
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.8), 0 1px 2px rgba(0,0,0,0.03);
+            flex-shrink: 0; color: #1d1d1f; transition: transform 0.15s ease, background-color 0.15s ease; 
+        }
+        .action-btn:active { transform: scale(0.92); background-color: #e3e3e8; }
         
         .page-wrapper { width: 100%; max-width: 1000px; margin: 0 auto; min-height: 100vh; padding: calc(96px + env(safe-area-inset-top)) var(--side-gap) 40px; }
         @media (min-width: 768px) { .page-wrapper { padding-top: calc(106px + env(safe-area-inset-top)); } }
@@ -73,28 +84,25 @@
         @media (min-width: 768px) { #list-container { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
         
         .item-card { 
-            background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-            border-radius: var(--radius-lg); border: var(--glass-border); box-shadow: var(--card-shadow); 
-            padding: 24px; position: relative; transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, background-color 0.2s ease; min-height: 110px;
+            background: #ffffff;
+            border-radius: var(--radius-lg); border: 1px solid rgba(0, 0, 0, 0.04); box-shadow: var(--card-shadow); 
+            padding: 24px; position: relative; transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, background-color 0.15s ease; min-height: 110px;
             cursor: pointer; -webkit-user-select: none; user-select: none; width: 100%;
         }
         
         @media (hover: hover) {
-            .item-card:hover { transform: translateY(-3px); box-shadow: 0 12px 38px rgba(0, 0, 0, 0.08); }
-            /* PC 端 Hover 反馈：卡片浮起，背景变为更纯净的白色，边框轻微显现 */
-            .search-result-card:hover { transform: translateY(-2px); background: #ffffff; border-color: rgba(0, 0, 0, 0.06); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02) !important; }
+            .item-card:hover { transform: translateY(-3px); box-shadow: 0 12px 38px rgba(0, 0, 0, 0.06); border-color: rgba(0, 0, 0, 0.08); }
+            .search-result-card:hover { transform: translateY(-2px); background: #ffffff; border-color: rgba(0, 0, 0, 0.08); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.03) !important; }
         }
         
-        .item-card:active { transform: scale(0.97) translateY(0); opacity: 0.85; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02); }
+        .item-card.touch-active { transform: scale(0.97) translateY(0); opacity: 0.85; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.01); background-color: #f2f2f7 !important; }
         
-        /* 移动端搜索卡片重构：采用纯白卡片+极轻边框，避免灰色带来的沉闷感，同时无重叠深阴影 */
         .search-result-card {
             background: #ffffff; backdrop-filter: none; -webkit-backdrop-filter: none;
-            border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.04); box-shadow: none !important;
+            border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.04); box-shadow: var(--card-shadow) !important;
             padding: 20px; min-height: auto; margin-bottom: 0;
         }
-        /* 移动端特调：手指按压时（:active）转化为内敛的浅灰色反馈，并附带平滑缩放 */
-        .search-result-card:active { transform: scale(0.97); background-color: #f2f2f7; border-color: rgba(0, 0, 0, 0.02); opacity: 0.95; }
+        .search-result-card.touch-active { transform: scale(0.97) !important; background-color: #f2f2f7 !important; border-color: rgba(0, 0, 0, 0.03) !important; opacity: 0.95 !important; box-shadow: none !important; }
 
         .card-info { padding-right: 0; text-align: left; }
         .item-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin:0; font-size:18px; font-weight: 700; color: #1d1d1f; }
@@ -111,18 +119,19 @@
             display: flex; align-items: center; justify-content: center; 
             padding: env(safe-area-inset-top) var(--side-gap) env(safe-area-inset-bottom); z-index: 150;
         }
-        .glass-card { background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border-radius: var(--radius-lg); border: var(--glass-border); padding: 32px 24px; width: 100%; max-width: 340px; text-align: center; }
+        .glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.6); padding: 32px 24px; width: 100%; max-width: 340px; text-align: center; }
         
         .auth-form-body input { width: 100%; height: 50px; padding: 0 16px; margin: 8px 0; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.08); font-size: 16px; outline: none; background: rgba(255,255,255,0.6); font-family: var(--font-sans); }
         .primary-btn { width: 100%; height: 50px; background: var(--accent); border: none; border-radius: var(--radius-md); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.3s; font-family: var(--font-sans); }
         .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+        /* 弹窗遮罩层纯色渐变也做了润色，既有温润感，又能完美融入 iOS 顶部刘海区 */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.2); z-index: 200; display: none; 
+            background: linear-gradient(to bottom, #f5f5f7 0%, #e3e3e8 40%, #d5d5de 100%); 
+            z-index: 200; display: none; 
             align-items: center; justify-content: center; padding: var(--side-gap);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
         }
         
         #pass-modal-overlay { z-index: 210; }
@@ -132,8 +141,8 @@
             height: auto; 
             max-height: 85vh; 
             display: flex; flex-direction: column; text-align: left;
-            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-            border-radius: 30px; padding: 26px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: var(--glass-border);
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border-radius: 30px; padding: 26px; box-shadow: 0 20px 50px rgba(0,0,0,0.12); border: 1px solid rgba(255, 255, 255, 0.7);
             overflow: hidden; position: relative;
             animation: applePopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -159,8 +168,17 @@
         .modal-close-x:active { transform: scale(0.95); }
 
         .modal-page-header { margin-bottom: 22px; display: flex; flex-direction: row; align-items: center; gap: 12px; padding-right: 32px; flex-shrink: 0; }
-        .modal-icon-wrapper { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.03); color: var(--accent); }
-        .modal-icon-wrapper.danger-style { color: var(--danger); }
+        
+        /* 弹窗二级图标容器：保持统一规范的 #f2f2f7 皮肤 */
+        .modal-icon-wrapper { 
+            width: 42px; height: 42px; border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0; 
+            background: #f2f2f7; 
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.8), 0 1px 3px rgba(0,0,0,0.04); 
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            color: var(--accent); 
+        }
+        .modal-icon-wrapper.danger-style { color: var(--danger); background: #fff5f5; border-color: rgba(255, 59, 48, 0.05); box-shadow: none; }
         .modal-icon-wrapper svg { width: 22px; height: 22px; }
         .page-modal-content h3 { font-size: 20px; font-weight: 700; color: #1d1d1f; margin: 0; letter-spacing: -0.5px; }
 
@@ -173,14 +191,14 @@
         .info-cell-group::-webkit-scrollbar, .apple-group-box::-webkit-scrollbar { display: none; width: 0; }
 
         .info-block-item {
-            background: rgba(255, 255, 255, 0.5); border-radius: 16px; padding: 12px 16px;
-            border: 1px solid rgba(0, 0, 0, 0.03); display: flex; flex-direction: column; gap: 4px; width: 100%;
+            background: #ffffff; border-radius: 16px; padding: 12px 16px;
+            border: 1px solid rgba(0, 0, 0, 0.04); display: flex; flex-direction: column; gap: 4px; width: 100%;
             cursor: pointer; transition: background-color 0.2s, border-color 0.25s, box-shadow 0.25s; flex-shrink: 0;
         }
         
         .info-block-item.view-mode-active { cursor: pointer; }
-        .info-block-item.view-mode-active:active { background-color: rgba(255, 255, 255, 0.9); }
-        .info-block-item.edit-mode-active { cursor: default; background: rgba(255, 255, 255, 0.65); }
+        .info-block-item.view-mode-active:active { background-color: #f2f2f7; }
+        .info-block-item.edit-mode-active { cursor: default; background: #ffffff; }
         .info-block-item:focus-within { background: #ffffff; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.08); }
         
         .info-block-label { font-size: 11px; color: var(--secondary); font-weight: 600; user-select: none; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -221,11 +239,11 @@
         
         .modal-search-results-area {
             display: grid; grid-template-columns: 100%; gap: 12px; width: 100%; flex: 1; overflow-y: auto;
-            padding-right: 6px; margin-bottom: 4px; align-content: start;
+            padding: 8px 6px 12px 0; align-content: start;
             -webkit-overflow-scrolling: touch;
         }
         @media (min-width: 768px) {
-            .modal-search-results-area { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+            .modal-search-results-area { grid-template-columns: repeat(2, 1fr); gap: 14px; padding-top: 10px; }
         }
         .modal-search-results-area::-webkit-scrollbar { display: none; width: 0; }
 
@@ -438,7 +456,7 @@
             <h3 style="color:var(--danger)">确定要删除凭据吗？</h3>
         </div>
         <div class="info-cell-group" style="margin-bottom: 20px; overflow: hidden;">
-            <div class="info-block-item edit-mode-active" style="background: rgba(255, 59, 48, 0.03); border-color: rgba(255, 59, 48, 0.05);">
+            <div class="info-block-item edit-mode-active" style="background: #ffffff; border-color: rgba(255, 59, 48, 0.15); box-shadow: none;">
                 <div class="info-block-label" style="color: var(--danger)">将永久从云端移除</div>
                 <div class="info-block-content" id="delete-target-name" style="font-weight:700;"></div>
             </div>
@@ -506,6 +524,41 @@
         }
     }, { passive: false });
 
+    function bindTouchFeedback(element, callback) {
+        let startY = 0, isScrolling = false;
+        
+        element.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            isScrolling = false;
+            element._touchTimeout = setTimeout(() => {
+                if (!isScrolling) element.classList.add('touch-active');
+            }, 60);
+        }, { passive: true });
+
+        element.addEventListener('touchmove', (e) => {
+            if (Math.abs(e.touches[0].clientY - startY) > 6) {
+                isScrolling = true;
+                clearTimeout(element._touchTimeout);
+                element.classList.remove('touch-active');
+            }
+        }, { passive: true });
+
+        element.addEventListener('touchend', (e) => {
+            clearTimeout(element._touchTimeout);
+            const wasActive = element.classList.contains('touch-active');
+            element.classList.remove('touch-active');
+            if (!isScrolling) {
+                e.preventDefault();
+                callback();
+            }
+        });
+
+        element.addEventListener('touchcancel', () => {
+            clearTimeout(element._touchTimeout);
+            element.classList.remove('touch-active');
+        });
+    }
+
     function render(list) {
         CACHED_LIST = list; 
         const c = document.getElementById('list-container');
@@ -523,7 +576,11 @@
                 </div>
                 ${item.updatedAt ? `<div class="item-time">${item.updatedAt}</div>` : ''} 
             `;
-            div.onclick = () => { isSearchTriggerSource = false; showDetails(item); };
+            div.onclick = (e) => { 
+                if (e.pointerType === 'touch' || ('ontouchstart' in window && e.detail === 0)) return;
+                isSearchTriggerSource = false; showDetails(item); 
+            };
+            bindTouchFeedback(div, () => { isSearchTriggerSource = false; showDetails(item); });
             c.appendChild(div);
         });
     }
@@ -564,14 +621,16 @@
                     <h3 class="item-name">${item.name}</h3>
                     <div class="info-row">
                         <p class="item-user">${item.user || '-'}</p>
+                        <div class="pass-val">••••••••</div>
                     </div>
                 </div>
                 ${item.updatedAt ? `<div class="item-time">${item.updatedAt}</div>` : ''} 
             `;
-            div.onclick = () => {
-                isSearchTriggerSource = true; 
-                showDetails(item);
+            div.onclick = (e) => {
+                if (e.pointerType === 'touch' || ('ontouchstart' in window && e.detail === 0)) return;
+                isSearchTriggerSource = true; showDetails(item);
             };
+            bindTouchFeedback(div, () => { isSearchTriggerSource = true; showDetails(item); });
             box.appendChild(div);
         });
     }

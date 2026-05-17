@@ -15,282 +15,275 @@
     <style>
         * { box-sizing: border-box; }
         :root {
-            --bg-base: #f1f1f4; --accent: #007aff; --danger: #ff3b30; --secondary: #86868b;
-            --side-gap: 20px; --glass-bg: #ffffff; --glass-blur: none;
-            --glass-border: 1px solid rgba(0, 0, 0, 0.05); --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+            --bg-base: #f5f5f7; --accent: #007aff; --danger: #ff3b30; --secondary: #86868b;
+            --side-gap: 20px; --glass-bg: rgba(255, 255, 255, 0.75); --glass-blur: blur(20px);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.6); --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
             --radius-lg: 28px; --radius-md: 14px;
-            --font-sans: -apple-system, "SF Pro Display", "SF Pro Text", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
-            --font-mono: "SF Pro Text", ui-monospace, SFMono-Regular, SF Pro Icons, "PingFang SC", monospace;
         }
         body, html {
             margin: 0; padding: 0; width: 100%; min-height: 100%;
             background-color: var(--bg-base); color: #1d1d1f;
-            font-family: var(--font-sans);
+            font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif;
             -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; overflow-x: hidden;
-            scroll-behavior: smooth;
         }
         
         body.modal-open-fixed {
-            position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; overflow: hidden !important;
+            position: fixed !important;
+            left: 0 !important;
+            width: 100% !important;
+            overflow: hidden !important;
         }
 
-        body:has(.modal-overlay[style*="display: flex"]) header {
-            background: transparent !important;
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-            box-shadow: none !important;
-        }
-
+        /* ─── 核心修改：默认隐藏渐变背景，只有在解锁成功、添加了 .unlocked 类后才显示，避免解锁页断层 ─── */
         .gradient-bg {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, #e3e3e8 0%, #f1f1f4 50%, #e3e3e8 100%);
+            background: linear-gradient(135deg, #e2e8f0 0%, #f9fafb 50%, #e2e8f0 100%);
             background-size: 400% 400%; animation: gradientFlow 15s ease-in-out infinite; z-index: -1;
             display: none; 
         }
-        body.unlocked .gradient-bg { display: block; }
+        body.unlocked .gradient-bg {
+            display: block;
+        }
         @keyframes gradientFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         
-        body:not(.unlocked) header {
-            display: none !important;
-        }
-
+        /* ─── 核心修改：顶部栏保持 100% 纯实色不透明，向上翻动时完美遮挡底层卡片 ─── */
         header {
             position: fixed; top: 0; left: 0; width: 100%;
             padding: calc(18px + env(safe-area-inset-top)) var(--side-gap) 15px;
             z-index: 100; display: flex; justify-content: space-between; align-items: center;
             background: #f5f5f7; 
-            border-bottom: 1px solid rgba(0, 0, 0, 0.02);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.015), 0 1px 0 rgba(0, 0, 0, 0.02);
         }
         .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; transition: opacity 0.25s ease; }
         .brand-logo { color: var(--accent); display: flex; align-items: center; }
         .brand-name { font-size: 19px; font-weight: 800; letter-spacing: 0.25em; text-transform: uppercase; }
         
         body:has(#auth-ui[style*="display: flex"]) header .brand,
-        body:has(#auth-ui:not([style*="display: none"])) header .brand { opacity: 0; pointer-events: none; }
+        body:has(#auth-ui:not([style*="display: none"])) header .brand {
+            opacity: 0; pointer-events: none;
+        }
 
         .header-actions { display: flex; gap: 10px; visibility: hidden; align-items: center; flex: 1; justify-content: flex-end; margin-left: 12px; }
+        .search-wrapper { display: flex; align-items: center; background: rgba(0, 0, 0, 0.05); border-radius: 12px; width: 40px; height: 40px; overflow: hidden; position: relative; border: 1px solid transparent; transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s; }
+        .search-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--secondary); flex-shrink: 0; }
+        .search-input { border: none; background: transparent; height: 100%; width: 0; padding: 0; font-size: 16px; outline: none !important; box-shadow: none !important; color: #1d1d1f; line-height: normal; }
+        .search-clear { width: 32px; height: 40px; color: var(--secondary); cursor: pointer; display: none; align-items: center; justify-content: center; flex-shrink: 0; }
         
-        .action-btn { 
-            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; 
-            cursor: pointer; border-radius: 12px; 
-            background: #f2f2f7; 
-            border: 1px solid rgba(0, 0, 0, 0.04); 
-            box-shadow: inset 0 1px 1px rgba(255,255,255,0.8), 0 1px 2px rgba(0,0,0,0.03);
-            flex-shrink: 0; color: #1d1d1f; transition: transform 0.15s ease, background-color 0.15s ease; 
+        .search-wrapper:focus-within { background: #fff; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12); }
+
+        @media (max-width: 767px) {
+            .header-actions.search-active .action-btn { display: none; }
+            .header-actions.search-active .search-wrapper { width: 100%; max-width: 200px; background: #fff; box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12); border-color: var(--accent); }
+            .header-actions.search-active .search-input { width: 100%; padding: 0 4px; }
         }
-        .action-btn:active { transform: scale(0.92); background-color: #e3e3e8; }
+        @media (min-width: 768px) { .search-wrapper { width: 200px; transition: width 0.2s, border-color 0.2s, box-shadow 0.2s, background-color 0.2s; } .search-input { width: 100%; padding-right: 10px; } }
+        .search-wrapper.has-content .search-clear { display: flex; }
+        .action-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 12px; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(0, 0, 0, 0.05); flex-shrink: 0; }
         
-        .page-wrapper { width: 100%; max-width: 1000px; margin: 0 auto; min-height: 100vh; padding: calc(96px + env(safe-area-inset-top)) var(--side-gap) 20px; display: flex; flex-direction: column; justify-content: space-between; }
+        /* 移动端首张卡片遮挡修复 - 恢复最初完美的间距比例 */
+        .page-wrapper { width: 100%; max-width: 1000px; margin: 0 auto; min-height: 100vh; padding: calc(96px + env(safe-area-inset-top)) var(--side-gap) 40px; }
         @media (min-width: 768px) { .page-wrapper { padding-top: calc(106px + env(safe-area-inset-top)); } }
 
-        #list-container { display: grid; grid-template-columns: 100%; gap: 16px; width: 100%; flex: 1; }
+        #list-container { display: grid; grid-template-columns: 100%; gap: 16px; }
         @media (min-width: 768px) { #list-container { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
         
         .item-card { 
-            background: #ffffff;
-            border-radius: var(--radius-lg); border: 1px solid rgba(0, 0, 0, 0.04); box-shadow: var(--card-shadow); 
-            padding: 24px; position: relative; transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, background-color 0.15s ease; min-height: 110px;
-            cursor: pointer; -webkit-user-select: none; user-select: none; width: 100%;
+            background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: var(--radius-lg); border: var(--glass-border); box-shadow: var(--card-shadow); 
+            padding: 22px; position: relative; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; min-height: 110px;
         }
+        .item-card:hover:not(.shake-active) { transform: translateY(-2px); }
         
-        @media (hover: hover) {
-            .item-card:hover { transform: translateY(-3px); box-shadow: 0 12px 38px rgba(0, 0, 0, 0.06); border-color: rgba(0, 0, 0, 0.08); }
-            .search-result-card:hover { transform: translateY(-2px); background: #f2f2f7; border-color: rgba(0, 0, 0, 0.06); box-shadow: none !important; }
+        /* 二次确认卡片抖动动画 */
+        .item-card.shake-active {
+            animation: cardWiggle 0.25s ease-in-out infinite;
+            border-color: rgba(255, 59, 48, 0.45);
+            box-shadow: 0 8px 24px rgba(255, 59, 48, 0.08);
         }
-        
-        .item-card.touch-active { transform: scale(0.97) translateY(0); opacity: 0.85; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.01); background-color: #f2f2f7 !important; }
-        
-        .search-result-card {
-            background: #f2f2f7; backdrop-filter: none; -webkit-backdrop-filter: none;
-            border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.03); box-shadow: none !important;
-            padding: 20px; min-height: auto; margin-bottom: 0;
+        @keyframes cardWiggle {
+            0% { transform: rotate(-0.5deg); }
+            50% { transform: rotate(0.5deg); }
+            100% { transform: rotate(-0.5deg); }
         }
-        .search-result-card .pass-val { opacity: 0.85; font-weight: 600; }
-        .search-result-card.touch-active { transform: scale(0.97) !important; background-color: #e3e3e8 !important; border-color: rgba(0, 0, 0, 0.04) !important; opacity: 0.95 !important; box-shadow: none !important; }
 
-        .card-info { padding-right: 0; text-align: left; }
-        .item-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin:0; font-size:18px; font-weight: 700; color: #1d1d1f; }
+        .card-actions { position: absolute; top: 18px; right: 18px; display: flex; gap: 2px; }
+        .card-info { padding-right: 80px; text-align: left; }
+        .item-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin:0; font-size:18px; font-weight: 700; }
         .info-row { margin-top: 6px; display: flex; flex-direction: column; gap: 2px; }
-        
-        .item-user, .pass-val { font-size:13px; font-family: var(--font-mono); }
+        .item-user, .pass-val { font-size:13px; font-family: ui-monospace, monospace; }
         .item-user { color:var(--secondary); margin: 0; }
-        .pass-val { color: var(--accent); opacity: 0.7; }
-        .item-time { position: absolute; bottom: 24px; right: 24px; font-size: 11px; color: var(--secondary); opacity: 0.4; font-family: var(--font-sans); }
-        .search-result-card .item-time { bottom: 20px; right: 20px; }
-
-        footer {
-            width: 100%; text-align: center; padding: 45px 0 10px;
-            font-size: 12px; color: var(--secondary); opacity: 0.55;
-            letter-spacing: 0.02em; line-height: 1.8; user-select: none;
-            font-family: var(--font-sans);
-        }
-
-        .auth-viewport { 
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            display: flex; align-items: center; justify-content: center; 
-            padding: env(safe-area-inset-top) var(--side-gap) env(safe-area-inset-bottom); z-index: 150;
-        }
-        .glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: var(--radius-lg); border: 1px solid rgba(255,255,255,0.6); padding: 32px 24px; width: 100%; max-width: 340px; text-align: center; }
+        .pass-val { color: var(--accent); opacity: 0.8; user-select: text; }
+        .tool-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: var(--secondary); cursor: pointer; border-radius: 8px; transition: background 0.2s; }
+        .tool-btn:hover { background: rgba(0,0,0,0.04); }
+        .tool-btn.active { color: var(--accent); background: rgba(0, 122, 255, 0.1); }
         
-        .auth-form-body input { width: 100%; height: 50px; padding: 0 16px; margin: 8px 0; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.08); font-size: 16px; outline: none; background: rgba(255,255,255,0.6); font-family: var(--font-sans); }
-        .primary-btn { width: 100%; height: 50px; background: var(--accent); border: none; border-radius: var(--radius-md); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.3s; font-family: var(--font-sans); }
+        .item-time { position: absolute; bottom: 22px; right: 22px; font-size: 11px; color: var(--secondary); opacity: 0.4; font-family: ui-monospace, monospace; line-height: 1.5; }
+
+        /* 视口全屏锁定，确保 iOS PWA 模式下解锁面板完美绝对居中 */
+        .auth-viewport { 
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; align-items: center; justify-content: center; 
+            padding: env(safe-area-inset-top) var(--side-gap) env(safe-area-inset-bottom);
+            z-index: 150;
+        }
+        .glass-card { background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border-radius: var(--radius-lg); border: var(--glass-border); padding: 32px 24px; width: 100%; max-width: 340px; text-align: center; }
+        
+        .auth-form-body input { width: 100%; height: 50px; padding: 0 16px; margin: 8px 0; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.08); font-size: 16px; outline: none; background: rgba(255,255,255,0.6); font-family: inherit; }
+        .primary-btn { width: 100%; height: 50px; background: var(--accent); border: none; border-radius: var(--radius-md); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.3s; }
         .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+        /* 二级页面遮罩层 */
         .modal-overlay { 
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            width: 100vw; height: 100vh;
-            background: linear-gradient(to bottom, #f5f5f7 0%, #e3e3e8 40%, #d5d5de 100%); 
-            z-index: 200; display: none; 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0, 0, 0, 0.15); z-index: 200; display: none; 
+            align-items: center; justify-content: center;
             padding: var(--side-gap);
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
         }
         
-        #pass-modal-overlay { z-index: 210; }
-
-        /* 🛠️ 【100% 还原基础样式】：
-           让除搜索弹窗外的所有普通弹窗恢复你原本的物理绝对居中！
-        */
+        /* 二级弹窗卡片容器 */
         .page-modal-content { 
-            position: fixed; 
-            top: calc(50% - env(safe-area-inset-bottom) / 2); 
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: calc(100% - (var(--side-gap) * 2)); max-width: 420px; 
-            height: auto; 
-            max-height: calc(84vh - env(safe-area-inset-bottom)); 
-            display: flex; flex-direction: column; text-align: left;
-            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-            border-radius: 30px; padding: 26px; box-shadow: 0 20px 50px rgba(0,0,0,0.12); border: 1px solid rgba(255, 255, 255, 0.7);
-            overflow: hidden;
-            animation: applePopIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            width: 100%; max-width: 440px; display: flex; flex-direction: column; text-align: left;
+            background: #ffffff; border-radius: 24px; padding: 24px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12); border: 1px solid rgba(0,0,0,0.05);
+            max-height: calc(100vh - 40px); overflow-y: auto;
+            animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .page-modal-content::-webkit-scrollbar { width: 4px; }
+        .page-modal-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 10px; }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.93) translateY(12px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        /* 🛠️ 【搜索独立规范】：
-           将搜索弹窗的动画与布局完全剥离出来，绝对不会影响卡片和其它普通弹窗的弹出！
-        */
-        #search-modal-overlay .page-modal-content {
-            top: 12%;
-            transform: translate(-50%, 0); /* 搜索专用：只居中左右，不垂直居中 */
-            height: calc(84vh - env(safe-area-inset-bottom) - 12%);
-            animation: searchPopIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        /* ─── 在移动端下让二级菜单的对应功能文字与图标，在尺寸排版上完全和底层 brand 重合 ─── */
+        @media (max-width: 480px) {
+            .modal-overlay { 
+                background: #f5f5f7; 
+                padding: calc(18px + env(safe-area-inset-top)) var(--side-gap) 40px; 
+                align-items: flex-start; 
+            }
+            .page-modal-content { max-height: 100%; box-shadow: none; border: none; padding: 0; background: transparent; animation: none; overflow-y: visible; }
+            
+            .modal-page-header { 
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center !important; 
+                gap: 10px !important; 
+                margin-bottom: 24px !important; 
+                padding: 0 !important;
+            }
+            .modal-icon-wrapper { 
+                background: transparent !important; 
+                box-shadow: none !important; 
+                width: auto !important; 
+                height: auto !important; 
+                display: flex !important;
+                align-items: center !important;
+                color: var(--accent) !important; 
+            }
+            .modal-icon-wrapper svg { width: 24px !important; height: 24px !important; }
+            
+            .page-modal-content h3 { 
+                font-size: 19px !important; 
+                font-weight: 800 !important; 
+                letter-spacing: 0.25em !important; 
+                text-transform: uppercase !important; 
+                color: #1d1d1f !important; 
+                margin: 0 !important;
+            }
         }
 
-        @media (min-width: 768px) {
-            #search-modal-overlay .page-modal-content { max-width: 680px; padding: 30px; top: 50%; transform: translate(-50%, -50%); height: auto; animation: applePopIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @media (min-width: 481px) {
+            .modal-page-header { margin-bottom: 24px; display: flex; flex-direction: row; align-items: center; gap: 14px; padding-left: 2px; }
+            .modal-icon-wrapper { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #f5f5f7; box-shadow: 0 2px 8px rgba(0,0,0,0.02); color: var(--accent); }
+            .modal-icon-wrapper svg { width: 24px; height: 24px; }
+            .page-modal-content h3 { font-size: 22px; font-weight: 700; color: #1d1d1f; margin: 0; letter-spacing: -0.5px; }
         }
 
-        .page-modal-content::-webkit-scrollbar { display: none; width: 0; }
-
-        /* 你原本完美的普通弹窗居中动画 */
-        @keyframes applePopIn {
-            from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)) scale(0.96); }
-            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        }
-
-        /* 搜索弹窗专用的顶部入场动画 */
-        @keyframes searchPopIn {
-            from { opacity: 0; transform: translate(-50%, calc(-12% + 12px)) scale(0.96); }
-            to { opacity: 1; transform: translate(-50%, 0) scale(1); }
-        }
-
-        .modal-close-x {
-            position: absolute; top: 24px; right: 24px; width: 30px; height: 30px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; background: rgba(0, 0, 0, 0.04); color: var(--secondary);
-            cursor: pointer; transition: background 0.2s, color 0.2s; z-index: 10;
-        }
-        @media (min-width: 768px) { .modal-close-x { top: 30px; right: 30px; } }
-        .modal-close-x:hover { background: rgba(0, 0, 0, 0.08); color: #1d1d1f; }
-        .modal-close-x:active { transform: scale(0.95); }
-
-        .modal-page-header { margin-bottom: 22px; display: flex; flex-direction: row; align-items: center; gap: 12px; padding-right: 32px; flex-shrink: 0; }
-        
-        .modal-icon-wrapper { 
-            width: 42px; height: 42px; border-radius: 12px; 
-            display: flex; align-items: center; justify-content: center; flex-shrink: 0; 
-            background: #f2f2f7; 
-            box-shadow: inset 0 1px 1px rgba(255,255,255,0.8), 0 1px 3px rgba(0,0,0,0.04); 
-            border: 1px solid rgba(0, 0, 0, 0.04);
-            color: var(--accent); 
-        }
-        .modal-icon-wrapper.danger-style { color: var(--danger); background: #fff5f5; border-color: rgba(255, 59, 48, 0.05); box-shadow: none; }
-        .modal-icon-wrapper svg { width: 22px; height: 22px; }
-        .page-modal-content h3 { font-size: 20px; font-weight: 700; color: #1d1d1f; margin: 0; letter-spacing: -0.5px; }
-
-        .info-cell-group, .apple-group-box { 
-            background: transparent; border: none; padding: 0; margin-bottom: 6px; 
+        .apple-group-box, .info-cell-group {
+            background: transparent; border: none; padding: 0; margin-bottom: 12px;
             display: flex; flex-direction: column; gap: 12px; 
-            flex: 1; overflow-y: auto; padding-right: 2px;
-            -webkit-overflow-scrolling: touch; 
         }
-        .info-cell-group::-webkit-scrollbar, .apple-group-box::-webkit-scrollbar { display: none; width: 0; }
 
         .info-block-item {
-            background: #f2f2f7; border-radius: 16px; padding: 12px 16px;
-            border: 1px solid rgba(0, 0, 0, 0.02); display: flex; flex-direction: column; gap: 4px; width: 100%;
-            cursor: pointer; transition: background-color 0.2s, border-color 0.25s, box-shadow 0.25s; flex-shrink: 0;
+            background: rgba(0, 0, 0, 0.03); 
+            border-radius: 16px; 
+            padding: 12px 16px;
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px;
+            width: 100%;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.25s, box-shadow 0.25s;
         }
+        .info-block-item.editable-box { cursor: default; } 
+        .info-block-item:not(.editable-box):active { background-color: rgba(0, 0, 0, 0.06); }
         
-        .info-block-item.view-mode-active { cursor: pointer; }
-        .info-block-item.view-mode-active:active { background-color: #e3e3e8; }
-        .info-block-item.edit-mode-active { cursor: default; background: #e3e3e8; border-color: rgba(0, 0, 0, 0.03); }
-        .info-block-item:focus-within { background: #ffffff; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.08); }
-        
-        .info-block-label { font-size: 11px; color: var(--secondary); font-weight: 600; user-select: none; text-transform: uppercase; letter-spacing: 0.05em; }
+        .info-block-item:focus-within {
+            background: #ffffff;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.08);
+        }
 
-        .info-block-content, .info-block-input-cell {
-            font-size: 16px; color: #1d1d1f; text-align: left; word-break: break-all;
-            font-family: var(--font-mono); width: 100%; height: 26px; line-height: 26px;
+        .info-block-label {
+            font-size: 12px;
+            color: var(--secondary);
+            font-weight: 600;
+            user-select: none;
+        }
+
+        .info-block-content {
+            font-size: 16px;
+            color: #1d1d1f;
+            text-align: left; 
+            word-break: break-all;
+            font-family: ui-monospace, monospace;
+            width: 100%;
+            line-height: 1.4;
+            display: block;
+            overflow-y: auto;
+            max-height: 160px; 
         }
         .info-block-content.highlight { color: var(--accent); font-weight: 700; }
-        
-        .note-fixed-height-box {
-            height: 76px !important; min-height: 76px !important; max-height: 76px !important;
-            overflow-y: auto !important; word-break: break-all; white-space: pre-wrap;
-            font-size: 14px !important; color: #333 !important; line-height: 1.6 !important; 
-            font-family: var(--font-sans) !important; 
-            width: 100%; text-align: left; margin: 0 !important;
-            padding-right: 8px !important;
-            -webkit-overflow-scrolling: touch;
-        }
-        div.note-fixed-height-box { padding-top: 2px !important; } 
-        .note-fixed-height-box::-webkit-scrollbar { display: none; width: 0; }
+        .info-block-content.note-style { font-family: inherit; font-size: 15px; color: #333; }
 
         .info-block-item input, .info-block-item textarea {
-            background: transparent !important; border: none !important; margin: 0 !important;
-            border-radius: 0 !important; width: 100% !important; outline: none !important; color: #1d1d1f; font-family: inherit; font-size: inherit;
+            background: transparent !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+            height: 26px !important; 
+            font-size: 16px !important;
+            box-shadow: none !important;
+            width: 100% !important;
+            outline: none !important; 
         }
-        .info-block-item input { height: 26px !important; line-height: 26px !important; font-size: 16px !important; padding: 0 !important; }
-        
-        .info-block-item textarea.add-note-input { resize: none; padding: 2px 0 0 0 !important; }
+        .info-block-item textarea.add-note-input {
+            height: 80px !important;
+            padding-top: 2px !important;
+            resize: none;
+            word-break: break-all;
+            line-height: 1.4;
+        }
 
-        .search-native-form { width: 100%; margin: 0; padding: 0; flex-shrink: 0; }
+        .info-block-content::-webkit-scrollbar, .info-block-item textarea::-webkit-scrollbar { width: 4px; }
+        .info-block-content::-webkit-scrollbar-track, .info-block-item textarea::-webkit-scrollbar-track { background: transparent; }
+        .info-block-content::-webkit-scrollbar-thumb, .info-block-item textarea::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0); border-radius: 10px; transition: background 0.25s ease; }
+        .info-block-item:hover .info-block-content::-webkit-scrollbar-thumb, .info-block-item:hover textarea::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); }
 
-        .modal-search-box-wrapper {
-            background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px;
-            padding: 2px 14px; display: flex; align-items: center; gap: 10px; height: 50px; margin-bottom: 20px;
-            transition: border-color 0.25s, box-shadow 0.25s, background-color 0.25s; flex-shrink: 0; width: 100%;
-        }
-        .modal-search-box-wrapper:focus-within { background: #ffffff; border-color: var(--accent); box-shadow: 0 0 0 3.5px rgba(0, 122, 255, 0.15); }
-        .modal-search-box-wrapper input { border: none; outline: none; font-size: 16px; flex: 1; color: #1d1d1f; height: 100%; background: transparent; font-family: var(--font-sans); }
-        
-        .modal-search-results-area {
-            display: grid; grid-template-columns: 100%; gap: 12px; width: 100%; flex: 1; overflow-y: auto;
-            padding: 8px 6px 12px 0; align-content: start;
-            -webkit-overflow-scrolling: touch;
-        }
-        @media (min-width: 768px) {
-            .modal-search-results-area { grid-template-columns: repeat(2, 1fr); gap: 14px; padding-top: 10px; }
-        }
-        .modal-search-results-area::-webkit-scrollbar { display: none; width: 0; }
-
-        .modal-action-row { display: flex; gap: 10px; width: 100%; margin-top: 14px; flex-shrink: 0; }
-        .modal-action-row .primary-btn, .modal-action-row .secondary-text-btn { flex: 1; height: 48px; border-radius: var(--radius-md); font-size: 15px; font-weight: 600; border: none; cursor: pointer; font-family: var(--font-sans); }
+        .modal-action-row { display: flex; gap: 12px; width: 100%; margin-top: 14px; }
+        .modal-action-row .primary-btn, .modal-action-row .secondary-text-btn { flex: 1; height: 50px; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; border: none; cursor: pointer; }
         .modal-action-row .secondary-text-btn { background: rgba(0, 0, 0, 0.04); color: #1d1d1f; transition: background 0.2s, transform 0.1s; }
         .modal-action-row .secondary-text-btn:active { background: rgba(0, 0, 0, 0.08); transform: scale(0.98); }
-        
-        .modal-action-row .danger-text-btn { flex: 1; height: 48px; border-radius: var(--radius-md); font-size: 15px; font-weight: 600; border: none; cursor: pointer; background: rgba(255, 59, 48, 0.08); color: var(--danger); transition: background 0.2s; font-family: var(--font-sans); }
-        .modal-action-row .danger-text-btn:active { background: rgba(255, 59, 48, 0.15); transform: scale(0.98); }
+
+        #toast { position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(0,0,0,0.85); color: white; padding: 12px 24px; border-radius: 24px; z-index: 1000; opacity: 0; pointer-events: none; transition: all 0.4s; }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .status-msg { width: 100%; padding: 60px 0; color: var(--secondary); text-align: center; grid-column: 1/-1; }
 
         #login-card {
             background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.45); box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.01), 0 24px 60px -8px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.4);
@@ -301,36 +294,49 @@
         .card-brand-name { font-size: 15px; font-weight: 800; letter-spacing: 0.25em; color: #1d1d1f; }
         #login-card h2 { display: none; }
         
-        .auth-form-body { display: flex; flex-direction: column; gap: 0; min-height: 98px; justify-content: flex-start; }
+        .auth-form-body { display: flex; flex-direction: column; gap: 0; }
         .auth-input-button-row { display: flex; gap: 10px; width: 100%; align-items: center; }
-        
-        .auth-native-form { width: 100%; margin: 0; padding: 0; }
-
-        .auth-input-button-row input { margin: 0; flex: 1; background: rgba(255, 255, 255, 0.75); border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 15px; height: 50px; font-size: 15px; color: #1d1d1f; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.01); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); font-family: var(--font-sans); }
+        .auth-input-button-row input { margin: 0; flex: 1; background: rgba(255, 255, 255, 0.75); border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 15px; height: 50px; font-size: 15px; color: #1d1d1f; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.01); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
         .auth-input-button-row input::placeholder { color: #a1a1a6; }
         .auth-input-button-row input:focus { background: #ffffff; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12); }
         
-        .auth-input-button-row .primary-btn { width: 90px; flex-shrink: 0; background: linear-gradient(180deg, #2f91ff 0%, var(--accent) 100%); border-radius: 15px; height: 50px; font-size: 15px; font-weight: 600; box-shadow: 0 4px 14px rgba(0, 122, 255, 0.15); transition: all 0.25s ease; font-family: var(--font-sans); }
+        .auth-input-button-row .primary-btn { width: 90px; flex-shrink: 0; background: linear-gradient(180deg, #2f91ff 0%, var(--accent) 100%); border-radius: 15px; height: 50px; font-size: 15px; font-weight: 600; box-shadow: 0 4px 14px rgba(0, 122, 255, 0.15); transition: all 0.25s ease; }
         .auth-input-button-row .primary-btn:hover:not(:disabled) { opacity: 0.95; transform: translateY(-0.5px); }
         
         #setup-area { animation: fadeInFlag 0.4s ease forwards; width: 100%; margin-bottom: 12px; }
         @keyframes fadeInFlag { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
         
-        #reset-link { transition: opacity 0.25s ease, transform 0.25s ease, color 0.25s ease !important; font-weight: 500; padding: 8px 12px; display: inline-block; text-align: center; margin-top: 16px !important; width: 100%; background: transparent !important; font-family: var(--font-sans); }
+        #reset-link { 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important; 
+            font-weight: 500; padding: 8px 12px; display: inline-block; text-align: center; margin-top: 16px !important; width: 100%; background: transparent !important;
+        }
         #reset-link:hover { opacity: 1 !important; color: var(--danger) !important; }
         #reset-link:active { color: var(--danger) !important; transform: scale(0.97); }
 
-        .auth-progress-container { width: 100%; margin-top: 24px; display: none; flex-direction: column; gap: 8px; animation: progressFadeIn 0.3s ease forwards; }
-        @keyframes progressFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-        .auth-progress-bar { width: 100%; height: 4px; background: rgba(0, 0, 0, 0.05); border-radius: 2px; overflow: hidden; position: relative; }
-        .auth-progress-fill { position: absolute; top: 0; left: 0; bottom: 0; width: 40%; background: linear-gradient(90deg, var(--accent), #64afff, var(--accent)); background-size: 200% 100%; border-radius: 2px; animation: progressMove 1.5s infinite linear; }
-        @keyframes progressMove { 0% { left: -40%; background-position: 0% 0%; } 100% { left: 100%; background-position: -200% 0%; } }
-        .auth-progress-text { font-size: 12px; color: var(--secondary); font-weight: 500; text-align: center; font-family: var(--font-sans); }
-
-        button, input, textarea, .action-btn, .info-block-item { -webkit-tap-highlight-color: transparent !important; outline: none !important; }
-        .primary-btn { transition: opacity 0.2s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease !important; }
-        .primary-btn:not(:disabled):active { transform: scale(0.96); opacity: 0.9; }
-        .primary-btn:disabled { opacity: 0.4; transform: scale(1) !important; cursor: not-allowed; }
+        /* ─── 移动端点击高亮与焦点框完美优化 ─── */
+        button, input, textarea, .action-btn, .tool-btn, .info-block-item {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+        .primary-btn {
+            transition: opacity 0.2s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease !important;
+        }
+        .primary-btn:not(:disabled):active {
+            transform: scale(0.96);
+            opacity: 0.9;
+        }
+        .primary-btn:disabled {
+            opacity: 0.4;
+            transform: scale(1) !important;
+            cursor: not-allowed;
+        }
+        .modal-action-row .secondary-text-btn {
+            transition: background-color 0.2s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .modal-action-row .secondary-text-btn:active {
+            background: rgba(0, 0, 0, 0.08) !important;
+            transform: scale(0.96) !important;
+        }
     </style>
 </head>
 <body>
@@ -341,8 +347,14 @@
         <div class="brand-name">AEGIS</div>
     </div>
     <div class="header-actions" id="actions">
-        <div class="action-btn" onmousedown="event.preventDefault();openSearchModal()" ontouchstart="event.preventDefault();openSearchModal()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <div class="search-wrapper" id="search-wrapper">
+            <div class="search-icon" onclick="focusSearch()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <input type="text" id="search-bar" class="search-input" placeholder="搜索..." oninput="handleSearchUI(this)" onfocus="handleSearchUI(this)" onblur="handleSearchUI(this)">
+            <div class="search-clear" onmousedown="event.preventDefault();clearSearch()" ontouchstart="event.preventDefault();clearSearch()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
         </div>
         <div class="action-btn" onmousedown="event.preventDefault();openAddModal()" ontouchstart="event.preventDefault();openAddModal()" style="color:var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
         <div class="action-btn" onmousedown="event.preventDefault();softLock()" ontouchstart="event.preventDefault();softLock()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
@@ -359,170 +371,53 @@
         </div>
         <div class="auth-form-body">
             <div id="setup-area" style="display:none;"><input type="password" id="gh-token" placeholder="GitHub Token (ghp_...)"></div>
-            
-            <form class="auth-native-form" action="javascript:void(0);" onsubmit="handleAuthSubmit()">
-                <div class="auth-input-button-row">
-                    <input type="password" id="main-pass" placeholder="请键入密码" autofocus>
-                    <button type="submit" class="primary-btn" id="login-btn">登录</button>
-                </div>
-            </form>
-
-            <div class="auth-progress-container" id="auth-loader">
-                <div class="auth-progress-bar"><div class="auth-progress-fill"></div></div>
-                <div class="auth-progress-text" id="auth-loader-text">正在验证凭据...</div>
+            <div class="auth-input-button-row">
+                <input type="password" id="main-pass" placeholder="请键入密码" autofocus onkeydown="if(event.keyCode===13){handleAuth();}">
+                <button class="primary-btn" onclick="handleAuth()">登录</button>
             </div>
             <p id="reset-link" style="font-size:12px; color:#86868b; cursor:pointer; display:none; opacity:0.6" onclick="toggleModal('hard-reset', true)">重置 Token 配置</p>
         </div>
     </div>
 </div>
 
-<div class="page-wrapper" id="main-ui" style="display:none">
-    <div id="list-container"></div>
-    <footer>
-        © AEGIS &nbsp;|&nbsp; 本站永久在线托管于 GITHUB，请放心使用。
-    </footer>
-</div>
-
-<div class="modal-overlay" id="search-modal-overlay">
-    <div class="page-modal-content">
-        <div class="modal-close-x" onclick="toggleModal('search-modal', false)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </div>
-        <div class="modal-page-header">
-            <div class="modal-icon-wrapper">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </div>
-            <h3>凭据搜索</h3>
-        </div>
-        
-        <form class="search-native-form" action="javascript:void(0);" onsubmit="document.getElementById('modal-search-input').blur();">
-            <div class="modal-search-box-wrapper">
-                <input type="text" id="modal-search-input" placeholder="输入名称、账号关键字过滤..." oninput="handleModalSearchEvent(this.value)">
-            </div>
-        </form>
-        
-        <div class="modal-search-results-area" id="modal-search-results-box"></div>
-    </div>
-</div>
-
-<div class="modal-overlay" id="pass-modal-overlay">
-    <div class="page-modal-content">
-        <div class="modal-close-x" id="merge-modal-close-icon" onclick="closeDetailsWindow()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </div>
-        <div class="modal-page-header">
-            <div class="modal-icon-wrapper" id="merge-modal-icon-container">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            </div>
-            <h3 id="merge-modal-title">凭据详情</h3>
-        </div>
-        
-        <div class="info-cell-group">
-            <div class="info-block-item view-mode-active" id="container-name" onclick="copyTextFromCell('detail-name', '名称')">
-                <div class="info-block-label">应用名称</div>
-                <div class="info-block-content" id="detail-name"></div>
-                <div class="info-block-input-cell" id="wrapper-name" style="display:none;"><input type="text" id="edit-name"></div>
-            </div>
-            
-            <div class="info-block-item view-mode-active" id="container-user" onclick="copyTextFromCell('detail-user', '账号')">
-                <div class="info-block-label">登录账号</div>
-                <div class="info-block-content" id="detail-user"></div>
-                <div class="info-block-input-cell" id="wrapper-user" style="display:none;"><input type="text" id="edit-user"></div>
-            </div>
-            
-            <div class="info-block-item view-mode-active" id="container-pass" onclick="copyTextFromCell('detail-pass', '密码')">
-                <div class="info-block-label">安全密码</div>
-                <div class="info-block-content highlight" id="detail-pass"></div>
-                <div class="info-block-input-cell" id="wrapper-pass" style="display:none;"><input type="text" id="edit-pass"></div>
-            </div>
-            
-            <div class="info-block-item view-mode-active" id="container-note" onclick="copyTextFromCell('detail-note', '备注')">
-                <div class="info-block-label">备注信息</div>
-                <div class="note-fixed-height-box" id="detail-note"></div>
-                <div class="info-block-input-cell" id="wrapper-note" style="display:none; height:76px;"><textarea id="edit-note" class="add-note-input note-fixed-height-box"></textarea></div>
-            </div>
-        </div>
-
-        <div class="modal-action-row" id="group-view-actions">
-            <button class="secondary-text-btn" id="detail-edit-btn" onclick="toggleWindowEditState(true)">编辑修改</button>
-            <button class="danger-text-btn" id="detail-del-btn">删除凭据</button>
-        </div>
-        
-        <div class="modal-action-row" id="group-edit-actions" style="display:none;">
-            <button class="secondary-text-btn" onclick="toggleWindowEditState(false)">取消修改</button>
-            <button class="primary-btn" id="edit-save-btn" onclick="saveMergedData()">同步云端修改</button>
-        </div>
-    </div>
-</div>
+<div class="page-wrapper" id="main-ui" style="display:none"><div id="list-container"></div></div>
 
 <div class="modal-overlay" id="add-modal-overlay">
     <div class="page-modal-content">
-        <div class="modal-close-x" onclick="toggleModal('add-modal', false)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </div>
         <div class="modal-page-header">
-            <div class="modal-icon-wrapper">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </div>
-            <h3>新增凭据</h3>
+            <div class="modal-icon-wrapper" id="add-modal-icon-container"></div>
+            <h3 id="modal-title">新增凭据</h3>
         </div>
         <div class="apple-group-box">
-            <div class="info-block-item edit-mode-active">
+            <div class="info-block-item editable-box">
                 <div class="info-block-label">应用名称</div>
                 <input type="text" id="add-name" placeholder="输入应用或网站名称">
             </div>
-            <div class="info-block-item edit-mode-active">
+            <div class="info-block-item editable-box">
                 <div class="info-block-label">用户名 / 账号</div>
                 <input type="text" id="add-user" placeholder="输入登录账号">
             </div>
-            <div class="info-block-item edit-mode-active">
+            <div class="info-block-item editable-box">
                 <div class="info-block-label">登录密码</div>
-                <input type="text" id="add-pass" placeholder="输入安全密码">
+                <input type="password" id="add-pass" placeholder="输入安全密码">
             </div>
-            <div class="info-block-item edit-mode-active">
+            <div class="info-block-item editable-box">
                 <div class="info-block-label">备注信息 (选填)</div>
-                <textarea id="add-note" class="add-note-input note-fixed-height-box" placeholder="可在此记录安全问题、附加密钥等长文本..."></textarea>
+                <textarea id="add-note" class="add-note-input" placeholder="可在此记录安全问题、附加密钥等长文本..."></textarea>
             </div>
         </div>
         <div class="modal-action-row">
             <button class="secondary-text-btn" onclick="toggleModal('add-modal', false)">取消</button>
-            <button class="primary-btn" id="add-save-btn" onclick="saveNewData()">同步新建凭据</button>
-        </div>
-    </div>
-</div>
-
-<div class="modal-overlay" id="confirm-delete-modal-overlay">
-    <div class="page-modal-content">
-        <div class="modal-close-x" onclick="toggleModal('confirm-delete-modal', false)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </div>
-        <div class="modal-page-header">
-            <div class="modal-icon-wrapper danger-style">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-            </div>
-            <h3 style="color:var(--danger)">确定要删除凭据吗？</h3>
-        </div>
-        <div class="info-cell-group" style="margin-bottom: 20px; overflow: hidden;">
-            <div class="info-block-item edit-mode-active" style="background: #ffffff; border-color: rgba(255, 59, 48, 0.15); box-shadow: none;">
-                <div class="info-block-label" style="color: var(--danger)">将永久从云端移除</div>
-                <div class="info-block-content" id="delete-target-name" style="font-weight:700;"></div>
-            </div>
-        </div>
-        <div class="modal-action-row">
-            <button class="secondary-text-btn" onclick="toggleModal('confirm-delete-modal', false)">取消</button>
-            <button class="primary-btn" style="background:var(--danger)" id="final-del-btn">确定删除</button>
+            <button class="primary-btn" id="save-btn" onclick="save()">同步云端</button>
         </div>
     </div>
 </div>
 
 <div class="modal-overlay" id="hard-reset-overlay">
     <div class="page-modal-content">
-        <div class="modal-close-x" onclick="toggleModal('hard-reset', false)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </div>
         <div class="modal-page-header">
             <div class="modal-icon-wrapper danger-style">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
             </div>
             <h3 style="color:var(--danger)">确定重置所有配置吗？</h3>
         </div>
@@ -533,9 +428,49 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="pass-modal-overlay">
+    <div class="page-modal-content">
+        <div class="modal-page-header">
+            <div class="modal-icon-wrapper" id="pass-modal-icon-container">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </div>
+            <h3 id="detail-modal-title">凭据详情</h3>
+        </div>
+        
+        <div class="info-cell-group">
+            <div class="info-block-item" onclick="copyTextFromCell('detail-name', '名称')">
+                <div class="info-block-label">应用名称</div>
+                <div class="info-block-content" id="detail-name"></div>
+            </div>
+            <div class="info-block-item" onclick="copyTextFromCell('detail-user', '账号')">
+                <div class="info-block-label">登录账号</div>
+                <div class="info-block-content" id="detail-user"></div>
+            </div>
+            <div class="info-block-item" onclick="copyTextFromCell('detail-pass', '密码')">
+                <div class="info-block-label">安全密码</div>
+                <div class="info-block-content highlight" id="detail-pass"></div>
+            </div>
+            <div class="info-block-item" id="detail-note-row" style="cursor: default;">
+                <div class="info-block-label">备注信息</div>
+                <div class="info-block-content note-style" id="detail-note"></div>
+            </div>
+        </div>
+
+        <div class="modal-action-row">
+            <button class="secondary-text-btn" onclick="toggleModal('pass-modal', false)">关闭</button>
+            <button class="primary-btn" id="copy-all-btn">复制全部</button>
+        </div>
+    </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
+    const SVGIcons = {
+        filePlus: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>`,
+        editPencil: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`
+    };
+
     const CryptoSvc = {
         _key: null,
         async deriveKey(pass) {
@@ -565,58 +500,67 @@
     };
 
     let FINAL_TOKEN = "", GIST_ID = localStorage.getItem('ae_gid'), ENCRYPTED_TK = localStorage.getItem('ae_enc_tk');
-    let currentActiveItem = null, CACHED_LIST = [], isSearchTriggerSource = false; 
-    let lastScrollY = 0, isWindowInEditMode = false; 
+    let pendingDeleteCardId = null, currentEditId = null, CACHED_LIST = []; 
+    let lastScrollY = 0; 
+
+    document.addEventListener('click', (e) => {
+        const bar = document.getElementById('search-bar');
+        const wrapper = document.getElementById('search-wrapper');
+        const isDelBtn = e.target.closest('.tool-btn[data-del-btn]'); 
+        
+        if (wrapper && !wrapper.contains(e.target) && bar && bar.value === "" && !e.target.closest('.tool-btn')) { bar.blur(); }
+        if (pendingDeleteCardId && !isDelBtn) { clearPendingDelete(); }
+    });
 
     document.addEventListener('touchmove', (e) => {
         if (document.body.classList.contains('modal-open-fixed')) {
-            if (!e.target.closest('.modal-overlay')) { e.preventDefault(); }
+            if (!e.target.closest('.modal-overlay')) {
+                e.preventDefault();
+            }
+        } else {
+            const bar = document.getElementById('search-bar');
+            if (bar === document.activeElement && bar.value === "") { bar.blur(); }
         }
     }, { passive: false });
 
-    function bindTouchFeedback(element, callback) {
-        let startY = 0, isScrolling = false;
+    function focusSearch() { document.getElementById('search-bar').focus(); }
+    
+    /* ─── 修正：彻底移除不美观的间距拉伸 CSS，改用优雅的无感 JS 瞬间置顶来解决移动端首卡遮挡 ─── */
+    function handleSearchUI(input) {
+        const wrapper = document.getElementById('search-wrapper'), actions = document.getElementById('actions');
+        const hasText = input.value.length > 0;
+        const isFocused = document.activeElement === input;
+        if (hasText) wrapper.classList.add('has-content'); else wrapper.classList.remove('has-content');
+        if (isFocused || hasText) actions.classList.add('search-active'); else actions.classList.remove('search-active');
+        handleSearch(input.value);
         
-        element.addEventListener('touchstart', (e) => {
-            startY = e.touches[0].clientY;
-            isScrolling = false;
-            element._touchTimeout = setTimeout(() => {
-                if (!isScrolling) element.classList.add('touch-active');
-            }, 60);
-        }, { passive: true });
-
-        element.addEventListener('touchmove', (e) => {
-            if (Math.abs(e.touches[0].clientY - startY) > 6) {
-                isScrolling = true;
-                clearTimeout(element._touchTimeout);
-                element.classList.remove('touch-active');
-            }
-        }, { passive: true });
-
-        element.addEventListener('touchend', (e) => {
-            clearTimeout(element._touchTimeout);
-            const wasActive = element.classList.contains('touch-active');
-            element.classList.remove('touch-active');
-            if (!isScrolling) {
-                e.preventDefault();
-                callback();
-            }
-        });
-
-        element.addEventListener('touchcancel', () => {
-            clearTimeout(element._touchTimeout);
-            element.classList.remove('touch-active');
-        });
+        if (isFocused || hasText) {
+            window.scrollTo({ top: 0, behavior: 'instant' });
+        }
+    }
+    
+    function clearSearch() {
+        const input = document.getElementById('search-bar');
+        input.value = ''; handleSearchUI(input); input.focus();
     }
 
-    function render(list) {
-        CACHED_LIST = list; 
+    function render(list, isSearching = false) {
+        if (!isSearching) CACHED_LIST = list; 
         const c = document.getElementById('list-container');
-        c.innerHTML = list.length ? '' : `<div class="status-msg">暂无凭据</div>`;
+        c.innerHTML = list.length ? '' : `<div class="status-msg">${isSearching ? '未找到相关凭据' : '暂无凭据'}</div>`;
         list.sort((a,b)=>b.id-a.id).forEach(item => {
             const div = document.createElement('div');
             div.className = 'item-card'; div.id = `card-${item.id}`;
+            const itemStr = JSON.stringify(item).replace(/"/g, '&quot;');
+
             div.innerHTML = `
+                <div class="card-actions">
+                    <button class="tool-btn" onmousedown="event.preventDefault();showDetails(${itemStr})" ontouchstart="event.preventDefault();showDetails(${itemStr})"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                    <button class="tool-btn" onmousedown="event.preventDefault();openEditModal(${itemStr})" ontouchstart="event.preventDefault();openEditModal(${itemStr})"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <button id="del-btn-${item.id}" data-del-btn="true" class="tool-btn" onmousedown="event.preventDefault();confirmDelete('${item.id}')" ontouchstart="event.preventDefault();confirmDelete('${item.id}')" style="color:var(--danger)">
+                        <svg class="del-icon-raw" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2-2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                </div>
                 <div class="card-info">
                     <h3 class="item-name">${item.name}</h3>
                     <div class="info-row">
@@ -626,301 +570,157 @@
                 </div>
                 ${item.updatedAt ? `<div class="item-time">${item.updatedAt}</div>` : ''} 
             `;
-            div.onclick = (e) => { 
-                if (e.pointerType === 'touch' || ('ontouchstart' in window && e.detail === 0)) return;
-                isSearchTriggerSource = false; showDetails(item); 
-            };
-            bindTouchFeedback(div, () => { isSearchTriggerSource = false; showDetails(item); });
             c.appendChild(div);
         });
+        pendingDeleteCardId = null; 
     }
 
-    function openSearchCenterWindow() {
-        document.getElementById('modal-search-input').value = '';
-        handleModalSearchEvent(''); 
-        toggleModal('search-modal', true);
-        
-        setTimeout(() => {
-            const searchInput = document.getElementById('modal-search-input');
-            if (searchInput) searchInput.focus();
-        }, 40);
+    function clearPendingDelete() {
+        if (!pendingDeleteCardId) return;
+        const previousCard = document.getElementById(`card-${pendingDeleteCardId}`);
+        const previousBtn = document.getElementById(`del-btn-${pendingDeleteCardId}`);
+        if (previousCard) previousCard.classList.remove('shake-active');
+        if (previousBtn) {
+            previousBtn.innerHTML = `<svg class="del-icon-raw" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2-2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`;
+        }
+        pendingDeleteCardId = null;
     }
-    window.openSearchModal = openSearchCenterWindow;
 
-    function handleModalSearchEvent(val) {
-        const query = (val || "").toLowerCase().trim();
-        const box = document.getElementById('modal-search-results-box');
+    async function confirmDelete(id) { 
+        const targetCard = document.getElementById(`card-${id}`);
+        const targetBtn = document.getElementById(`del-btn-${id}`);
         
-        if (!query) {
-            box.innerHTML = '';
-            return;
+        if (pendingDeleteCardId !== id) {
+            clearPendingDelete(); 
+            pendingDeleteCardId = id;
+            if (targetCard) targetCard.classList.add('shake-active');
+            if (targetBtn) {
+                targetBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+            }
+            return; 
         }
         
-        const filtered = CACHED_LIST.filter(item => 
-            item.name.toLowerCase().includes(query) || 
-            (item.user && item.user.toLowerCase().includes(query))
-        );
-        
-        if (!filtered.length) {
-            box.innerHTML = `<div class="status-msg">未找到相关凭据</div>`;
-            return;
+        try { 
+            showToast("正在同步删除...");
+            let list = await getLatest(); 
+            list = list.filter(i => i.id != id); 
+            await updateCloud(list); 
+            clearSearch(); 
+        } catch(e) { 
+            showToast("删除失败"); 
+            clearPendingDelete();
         }
-        
-        box.innerHTML = '';
-        filtered.sort((a,b)=>b.id-a.id).forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'item-card search-result-card';
-            div.innerHTML = `
-                <div class="card-info">
-                    <h3 class="item-name">${item.name}</h3>
-                    <div class="info-row">
-                        <p class="item-user">${item.user || '-'}</p>
-                        <div class="pass-val">••••••••</div>
-                    </div>
-                </div>
-                ${item.updatedAt ? `<div class="item-time">${item.updatedAt}</div>` : ''} 
-            `;
-            div.onclick = (e) => {
-                if (e.pointerType === 'touch' || ('ontouchstart' in window && e.detail === 0)) return;
-                isSearchTriggerSource = true; showDetails(item);
-            };
-            bindTouchFeedback(div, () => { isSearchTriggerSource = true; showDetails(item); });
-            box.appendChild(div);
-        });
     }
 
     function showDetails(item) {
-        currentActiveItem = item;
-        toggleWindowEditState(false); 
-
+        document.getElementById('detail-modal-title').innerText = "凭据详情";
         document.getElementById('detail-name').innerText = item.name || '-';
         document.getElementById('detail-user').innerText = item.user || '-';
         document.getElementById('detail-pass').innerText = item.pass || '-';
-        document.getElementById('detail-note').innerText = item.note || '';
-
-        document.getElementById('detail-note').scrollTop = 0;
-        document.getElementById('edit-note').scrollTop = 0;
+        
+        const noteRow = document.getElementById('detail-note-row');
+        if (item.note && item.note.trim()) {
+            document.getElementById('detail-note').innerText = item.note;
+            noteRow.style.display = 'flex';
+        } else {
+            noteRow.style.display = 'none';
+        }
 
         toggleModal('pass-modal', true);
-
-        document.getElementById('detail-del-btn').onclick = () => {
-            toggleModal('pass-modal', false);
-            document.getElementById('delete-target-name').innerText = item.name;
-            setTimeout(() => toggleModal('confirm-delete-modal', true), 150);
+        
+        /* ─── 保持修改：“复制全部”点击后一次性完整导出四大维度的文本内容 ─── */
+        document.getElementById('copy-all-btn').onclick = function() {
+            const allText = `名称: ${item.name || '-'}\n账号: ${item.user || '-'}\n密码: ${item.pass || '-'}${item.note ? `\n备注: ${item.note}` : ''}`;
+            navigator.clipboard.writeText(allText).then(() => showToast("全部内容已复制")).catch(() => showToast("复制失败"));
         };
     }
 
-    function closeDetailsWindow() {
-        toggleWindowEditState(false); 
-        document.getElementById('detail-note').scrollTop = 0;
-        document.getElementById('edit-note').scrollTop = 0;
-
-        toggleModal('pass-modal', false);
-        if (isSearchTriggerSource) {
-            isSearchTriggerSource = false; 
-            handleModalSearchEvent(document.getElementById('modal-search-input').value);
-        }
-    }
-
-    function toggleWindowEditState(activeEdit) {
-        isWindowInEditMode = activeEdit;
-        const fields = ['name', 'user', 'pass', 'note'];
-        const title = document.getElementById('merge-modal-title');
-        const iconContainer = document.getElementById('merge-modal-icon-container');
-        
-        if (activeEdit) {
-            title.innerText = "修改凭据";
-            iconContainer.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
-            
-            document.getElementById('edit-name').value = currentActiveItem.name;
-            document.getElementById('edit-user').value = currentActiveItem.user;
-            document.getElementById('edit-pass').value = currentActiveItem.pass;
-            document.getElementById('edit-note').value = currentActiveItem.note || '';
-
-            fields.forEach(f => {
-                document.getElementById(`detail-${f}`).style.display = 'none';
-                document.getElementById(`wrapper-${f}`).style.display = 'block';
-                document.getElementById(`container-${f}`).className = "info-block-item edit-mode-active";
-            });
-
-            document.getElementById('edit-note').scrollTop = 0;
-
-            document.getElementById('group-view-actions').style.display = 'none';
-            document.getElementById('group-edit-actions').style.display = 'flex';
-        } else {
-            title.innerText = "凭据详情";
-            iconContainer.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-            
-            fields.forEach(f => {
-                document.getElementById(`wrapper-${f}`).style.display = 'none';
-                document.getElementById(`detail-${f}`).style.display = 'block';
-                document.getElementById(`container-${f}`).className = "info-block-item view-mode-active";
-            });
-
-            document.getElementById('detail-note').scrollTop = 0;
-
-            document.getElementById('group-edit-actions').style.display = 'none';
-            document.getElementById('group-view-actions').style.display = 'flex';
-        }
-    }
-
-    function openAddModal() {
-        currentActiveItem = null;
-        ['add-name','add-user','add-pass','add-note'].forEach(id => document.getElementById(id).value = '');
-        toggleModal('add-modal', true);
-    }
-
     function copyTextFromCell(elementId, labelName) {
-        if (isWindowInEditMode) return; 
         const text = document.getElementById(elementId).innerText;
-        if (!text || text === '') return;
-        navigator.clipboard.writeText(text).then(() => { showToast(`${labelName}已复制`); }).catch(() => showToast("复制失败"));
+        if (!text || text === '-') return;
+        navigator.clipboard.writeText(text).then(() => {
+            showToast(`${labelName}已复制`);
+        }).catch(() => showToast("复制失败"));
     }
 
-    async function saveMergedData() {
-        const name = document.getElementById('edit-name').value.trim();
-        const pass = document.getElementById('edit-pass').value.trim();
-        if(!name || !pass) return;
-
-        const saveBtn = document.getElementById('edit-save-btn');
-        saveBtn.disabled = true; saveBtn.innerText = "同步中...";
-        const now = new Date();
-        const timeStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-        try {
-            let list = await getLatest();
-            const payload = { name, user: document.getElementById('edit-user').value, pass, note: document.getElementById('edit-note').value, updatedAt: timeStr };
-            
-            const index = list.findIndex(i => i.id == currentActiveItem.id);
-            if (index !== -1) list[index] = { ...list[index], ...payload, id: currentActiveItem.id };
-
-            await updateCloud(list);
-            
-            currentActiveItem = { ...currentActiveItem, ...payload };
-            document.getElementById('detail-name').innerText = currentActiveItem.name;
-            document.getElementById('detail-user').innerText = currentActiveItem.user;
-            document.getElementById('detail-pass').innerText = currentActiveItem.pass;
-            document.getElementById('detail-note').innerText = currentActiveItem.note;
-            
-            toggleWindowEditState(false);
-        } catch (e) { showToast("同步失败"); } finally { saveBtn.disabled = false; saveBtn.innerText = "同步云端修改"; }
+    function openAddModal() { 
+        currentEditId = null; 
+        document.getElementById('modal-title').innerText = "新增凭据";
+        document.getElementById('add-modal-icon-container').innerHTML = SVGIcons.filePlus;
+        ['add-name','add-user','add-pass','add-note'].forEach(i => document.getElementById(i).value=''); 
+        toggleModal('add-modal', true); 
     }
-
-    async function saveNewData() {
-        const name = document.getElementById('add-name').value.trim();
-        const pass = document.getElementById('add-pass').value.trim();
-        if(!name || !pass) return;
-
-        const saveBtn = document.getElementById('add-save-btn');
-        saveBtn.disabled = true; saveBtn.innerText = "同步中...";
-        const now = new Date();
-        const timeStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-        try {
-            let list = await getLatest();
-            const payload = { name, user: document.getElementById('add-user').value, pass, note: document.getElementById('add-note').value, updatedAt: timeStr, id: Date.now() };
-            list.push(payload);
-            await updateCloud(list);
-            toggleModal('add-modal', false);
-        } catch (e) { showToast("同步失败"); } finally { saveBtn.disabled = false; saveBtn.innerText = "同步新建凭据"; }
+    
+    function openEditModal(item) { 
+        currentEditId = item.id; 
+        document.getElementById('modal-title').innerText = "修改凭据"; 
+        document.getElementById('add-modal-icon-container').innerHTML = SVGIcons.editPencil;
+        document.getElementById('add-name').value = item.name; 
+        document.getElementById('add-user').value = item.user; 
+        document.getElementById('add-pass').value = item.pass; 
+        document.getElementById('add-note').value = item.note || ''; 
+        toggleModal('add-modal', true); 
     }
-
-    document.getElementById('final-del-btn').onclick = async function() {
-        if (!currentActiveItem) return;
-        const btn = document.getElementById('final-del-btn'); btn.disabled = true; btn.innerText = "正在同步...";
-        try {
-            let list = await getLatest();
-            list = list.filter(i => i.id != currentActiveItem.id);
-            await updateCloud(list);
-            toggleModal('confirm-delete-modal', false);
-        } catch(e) { showToast("删除失败"); } finally { btn.disabled = false; btn.innerText = "确定删除"; }
-    };
-
+    
     function softLock() { location.reload(); }
     
     function toggleModal(id, show) { 
         const overlay = document.getElementById(id + '-overlay');
         if (show) {
-            lastScrollY = window.scrollY; 
+            lastScrollY = window.scrollY;
             overlay.style.display = 'flex';
-            if (document.querySelectorAll('.modal-overlay[style*="display: flex"]').length === 1) {
-                document.body.style.top = `-${lastScrollY}px`; 
-                document.body.classList.add('modal-open-fixed');
-            }
+            document.body.style.top = `-${lastScrollY}px`;
+            document.body.classList.add('modal-open-fixed');
         } else {
-            const modalInputs = overlay.querySelectorAll('input, textarea');
-            modalInputs.forEach(input => input.blur());
-
             overlay.style.display = 'none';
             if (!document.querySelector('.modal-overlay[style*="display: flex"]')) {
-                document.documentElement.style.scrollBehavior = 'auto';
-                document.body.style.scrollBehavior = 'auto';
-
-                document.body.classList.remove('modal-open-fixed'); 
-                document.body.style.top = ''; 
-
+                document.body.classList.remove('modal-open-fixed');
+                document.body.style.top = '';
                 window.scrollTo(0, lastScrollY);
-                
-                setTimeout(() => {
-                    document.documentElement.style.scrollBehavior = '';
-                    document.body.style.scrollBehavior = '';
-                }, 40);
             }
         }
     }
     
     function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000); }
 
-    function handleAuthSubmit() {
-        const inputField = document.getElementById('main-pass');
-        if (inputField) {
-            inputField.blur();
-        }
-        handleAuth();
-    }
-
     async function handleAuth() {
         const pass = document.getElementById('main-pass').value; if (!pass) return;
         
-        const tokenInput = document.getElementById('gh-token'); if(tokenInput) tokenInput.blur();
-        const loader = document.getElementById('auth-loader'); const loaderText = document.getElementById('auth-loader-text');
-        const resetLink = document.getElementById('reset-link'); const loginBtn = document.getElementById('login-btn');
+        document.getElementById('main-pass').blur();
+        const tokenInput = document.getElementById('gh-token');
+        if(tokenInput) tokenInput.blur();
         
-        if (loader) loader.style.display = 'flex';
-        if (loaderText) loaderText.innerText = "正在解密安全密钥...";
-        if (resetLink) resetLink.style.display = 'none';
-        if (loginBtn) loginBtn.disabled = true;
-        await new Promise(resolve => setTimeout(resolve, 300)); 
+        await new Promise(resolve => setTimeout(resolve, 350)); 
 
-        try {
-            await CryptoSvc.deriveKey(pass);
-            if (!ENCRYPTED_TK) {
-                const tk = document.getElementById('gh-token').value.trim(); 
-                if (!tk.startsWith('ghp_')) { showToast("Token无效"); resetAuthUI(); return; }
-                const encryptedTk = await CryptoSvc.encrypt(tk);
-                localStorage.setItem('ae_enc_tk', encryptedTk); FINAL_TOKEN = tk;
-            } else {
-                const decryptedTk = await CryptoSvc.decrypt(ENCRYPTED_TK);
-                if (!decryptedTk) { showToast("密码错误或数据损坏"); resetAuthUI(); return; }
-                FINAL_TOKEN = decryptedTk;
-            }
-            
-            if (loaderText) loaderText.innerText = "读取云端凭据中...";
-            const isPreloadSuccess = await preloadCloudData();
-            if (!isPreloadSuccess) { resetAuthUI(); return; }
+        await CryptoSvc.deriveKey(pass);
+        if (!ENCRYPTED_TK) {
+            const tk = document.getElementById('gh-token').value.trim(); 
+            if (!tk.startsWith('ghp_')) { showToast("Token无效"); return; }
+            const encryptedTk = await CryptoSvc.encrypt(tk);
+            localStorage.setItem('ae_enc_tk', encryptedTk); FINAL_TOKEN = tk;
+        } else {
+            const decryptedTk = await CryptoSvc.decrypt(ENCRYPTED_TK);
+            decryptedTk ? FINAL_TOKEN = decryptedTk : (showToast("密码错误或数据损坏"));
+            if (!decryptedTk) return;
+        }
+        
+        // ─── 核心修改：通过向 body 添加 .unlocked 类，动态优雅地切回列表的高级渐变背板 ───
+        document.body.classList.add('unlocked');
 
-            document.body.classList.add('unlocked');
-            document.getElementById('auth-ui').style.display = 'none'; 
-            document.getElementById('main-ui').style.display = 'block'; 
-            document.getElementById('actions').style.visibility = 'visible'; 
-            window.scrollTo(0, 0); document.body.scrollTop = 0;
-        } catch (e) { showToast("认证发生未知错误"); resetAuthUI(); }
+        document.getElementById('auth-ui').style.display = 'none'; 
+        document.getElementById('main-ui').style.display = 'block'; 
+        document.getElementById('actions').style.visibility = 'visible'; 
+        
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        
+        startSync();
     }
 
-    async function preloadCloudData() {
+    async function startSync() {
+        const container = document.getElementById('list-container'); container.innerHTML = '<div class="status-msg">同步中...</div>';
         try {
             const resp = await fetch('https://api.github.com/gists', { headers: { 'Authorization': `token ${FINAL_TOKEN}` } });
-            if (!resp.ok) return false;
             const data = await resp.json(); const db = data.find(g => g.files['aegis_db.json']);
             if(db) {
                 GIST_ID = db.id; localStorage.setItem('ae_gid', GIST_ID);
@@ -930,14 +730,9 @@
                 if (rawContent && rawContent !== "[]") {
                     const decrypted = await CryptoSvc.decrypt(rawContent); list = JSON.parse(decrypted || "[]");
                 }
-                render(list); return true;
-            } else { await startSyncNew(); return true; }
-        } catch(e) { return false; }
-    }
-
-    function resetAuthUI() {
-        const loader = document.getElementById('auth-loader'); const resetLink = document.getElementById('reset-link'); const loginBtn = document.getElementById('login-btn');
-        if (loader) loader.style.display = 'none'; if (loginBtn) loginBtn.disabled = false; if (resetLink && ENCRYPTED_TK) resetLink.style.display = 'block';
+                render(list);
+            } else { startSyncNew(); }
+        } catch(e) { container.innerHTML = '<div class="status-msg">同步失败</div>'; }
     }
 
     async function startSyncNew() {
@@ -948,6 +743,30 @@
             });
             const data = await res.json(); GIST_ID = data.id; localStorage.setItem('ae_gid', GIST_ID); render([]);
         } catch(e) { showToast("初始化失败"); }
+    }
+
+    function handleSearch(val) { const query = (val || "").toLowerCase().trim(); if (!query) { render(CACHED_LIST); return; } render(CACHED_LIST.filter(item => item.name.toLowerCase().includes(query) || (item.user && item.user.toLowerCase().includes(query))), true); }
+    
+    async function save() { 
+        const name = document.getElementById('add-name').value.trim(), pass = document.getElementById('add-pass').value.trim(); 
+        if(!name || !pass) return;
+        const saveBtn = document.getElementById('save-btn'); saveBtn.disabled = true; saveBtn.innerText = "同步中...";
+        
+        const now = new Date();
+        const timeStr = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+        try { 
+            let list = await getLatest(); 
+            const payload = { name, user: document.getElementById('add-user').value, pass, note: document.getElementById('add-note').value, updatedAt: timeStr };
+            if (currentEditId) { 
+                const index = list.findIndex(i => i.id == currentEditId); if (index !== -1) list[index] = { ...list[index], ...payload }; 
+            } else { 
+                list.push({ ...payload, id: Date.now() }); 
+            } 
+            await updateCloud(list); clearSearch(); toggleModal('add-modal', false); 
+        } catch (e) { showToast("同步失败"); } finally { 
+            saveBtn.disabled = false; saveBtn.innerText = "同步云端"; 
+        }
     }
 
     async function getLatest() { 

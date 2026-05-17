@@ -47,7 +47,7 @@
             background-size: 400% 400%; animation: gradientFlow 15s ease-in-out infinite; z-index: -1;
             display: none; 
         }
-        body.unlocked .gradient-bg { display: block; }
+        body.unlocked .gradient-bg { block; }
         @keyframes gradientFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         
         body:not(.unlocked) header {
@@ -147,7 +147,6 @@
         
         #pass-modal-overlay { z-index: 210; }
 
-        /* 【深度优化】：通过在 translate 中精确扣除安全区及键盘扰动补偿，使整体视觉完美落座物理视口绝对正中心 */
         .page-modal-content { 
             position: fixed; 
             top: calc(50% - env(safe-area-inset-bottom) / 2); 
@@ -320,11 +319,11 @@
         <div class="brand-name">AEGIS</div>
     </div>
     <div class="header-actions" id="actions">
-        <div class="action-btn" onmousedown="event.preventDefault();openSearchModal()" ontouchstart="event.preventDefault();openSearchModal()">
+        <div class="action-btn" onclick="openSearchCenterWindow()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         </div>
-        <div class="action-btn" onmousedown="event.preventDefault();openAddModal()" ontouchstart="event.preventDefault();openAddModal()" style="color:var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-        <div class="action-btn" onmousedown="event.preventDefault();softLock()" ontouchstart="event.preventDefault();softLock()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div class="action-btn" onclick="openAddModal()" style="color:var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+        <div class="action-btn" onclick="softLock()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
     </div>
 </header>
 
@@ -339,7 +338,7 @@
         <div class="auth-form-body">
             <div id="setup-area" style="display:none;"><input type="password" id="gh-token" placeholder="GitHub Token (ghp_...)"></div>
             <div class="auth-input-button-row">
-                <input type="password" id="main-pass" placeholder="请键入密码" autofocus onkeydown="if(event.keyCode===13){handleAuth();}">
+                <input type="password" id="main-pass" placeholder="请键入密码" autofocus autocomplete="off" autocapitalize="off" spellcheck="false" onkeydown="if(event.keyCode===13){handleAuth();}">
                 <button class="primary-btn" id="login-btn" onclick="handleAuth()">登录</button>
             </div>
             <div class="auth-progress-container" id="auth-loader">
@@ -371,7 +370,7 @@
         </div>
         
         <div class="modal-search-box-wrapper">
-            <input type="text" id="modal-search-input" placeholder="输入名称、账号关键字过滤..." oninput="handleModalSearchEvent(this.value)">
+            <input type="text" id="modal-search-input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="输入名称、账号关键字过滤..." oninput="handleModalSearchEvent(this.value)">
         </div>
         
         <div class="modal-search-results-area" id="modal-search-results-box"></div>
@@ -394,25 +393,25 @@
             <div class="info-block-item view-mode-active" id="container-name" onclick="copyTextFromCell('detail-name', '名称')">
                 <div class="info-block-label">应用名称</div>
                 <div class="info-block-content" id="detail-name"></div>
-                <div class="info-block-input-cell" id="wrapper-name" style="display:none;"><input type="text" id="edit-name"></div>
+                <div class="info-block-input-cell" id="wrapper-name" style="display:none;"><input type="text" id="edit-name" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
             </div>
             
             <div class="info-block-item view-mode-active" id="container-user" onclick="copyTextFromCell('detail-user', '账号')">
                 <div class="info-block-label">登录账号</div>
                 <div class="info-block-content" id="detail-user"></div>
-                <div class="info-block-input-cell" id="wrapper-user" style="display:none;"><input type="text" id="edit-user"></div>
+                <div class="info-block-input-cell" id="wrapper-user" style="display:none;"><input type="text" id="edit-user" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
             </div>
             
             <div class="info-block-item view-mode-active" id="container-pass" onclick="copyTextFromCell('detail-pass', '密码')">
                 <div class="info-block-label">安全密码</div>
                 <div class="info-block-content highlight" id="detail-pass"></div>
-                <div class="info-block-input-cell" id="wrapper-pass" style="display:none;"><input type="text" id="edit-pass"></div>
+                <div class="info-block-input-cell" id="wrapper-pass" style="display:none;"><input type="text" id="edit-pass" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
             </div>
             
             <div class="info-block-item view-mode-active" id="container-note" onclick="copyTextFromCell('detail-note', '备注')">
                 <div class="info-block-label">备注信息</div>
                 <div class="note-fixed-height-box" id="detail-note"></div>
-                <div class="info-block-input-cell" id="wrapper-note" style="display:none; height:76px;"><textarea id="edit-note" class="add-note-input note-fixed-height-box"></textarea></div>
+                <div class="info-block-input-cell" id="wrapper-note" style="display:none; height:76px;"><textarea id="edit-note" class="add-note-input note-fixed-height-box" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea></div>
             </div>
         </div>
 
@@ -442,19 +441,19 @@
         <div class="apple-group-box">
             <div class="info-block-item edit-mode-active">
                 <div class="info-block-label">应用名称</div>
-                <input type="text" id="add-name" placeholder="输入应用或网站名称">
+                <input type="text" id="add-name" placeholder="输入应用或网站名称" autocomplete="off" autocapitalize="off" spellcheck="false">
             </div>
             <div class="info-block-item edit-mode-active">
                 <div class="info-block-label">用户名 / 账号</div>
-                <input type="text" id="add-user" placeholder="输入登录账号">
+                <input type="text" id="add-user" placeholder="输入登录账号" autocomplete="off" autocapitalize="off" spellcheck="false">
             </div>
             <div class="info-block-item edit-mode-active">
                 <div class="info-block-label">登录密码</div>
-                <input type="text" id="add-pass" placeholder="输入安全密码">
+                <input type="text" id="add-pass" placeholder="输入安全密码" autocomplete="off" autocapitalize="off" spellcheck="false">
             </div>
             <div class="info-block-item edit-mode-active">
                 <div class="info-block-label">备注信息 (选填)</div>
-                <textarea id="add-note" class="add-note-input note-fixed-height-box" placeholder="可在此记录安全问题、附加密钥等长文本..."></textarea>
+                <textarea id="add-note" class="add-note-input note-fixed-height-box" placeholder="可在此记录安全问题、附加密钥等长文本..." autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
             </div>
         </div>
         <div class="modal-action-row">
@@ -608,11 +607,20 @@
         });
     }
 
+    // 【深度优化核心逻辑】：完美解决 iOS 键盘唤醒
     function openSearchCenterWindow() {
         document.getElementById('modal-search-input').value = '';
         handleModalSearchEvent(''); 
+        
+        // 1. 同步打开蒙层
         toggleModal('search-modal', true);
-        setTimeout(() => document.getElementById('modal-search-input').focus(), 150);
+        
+        // 2. iOS 规定：只有在无延迟的原生调用栈中才能激活虚拟键盘，因此去掉原来的 setTimeout 延迟
+        const searchInput = document.getElementById('modal-search-input');
+        searchInput.focus();
+        
+        // 3. 额外追加一次点击触发（确保一些严格版本的 iOS 能立刻响应）
+        searchInput.click();
     }
     window.openSearchModal = openSearchCenterWindow;
 

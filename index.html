@@ -15,18 +15,19 @@
     <style>
         * { box-sizing: border-box; }
         :root {
+            --bg-base: #f2f2f7; /* 高级重构：大背景切换为 Apple 工业冷灰色 */
             --accent: #007aff; --danger: #ff3b30; --secondary: #86868b;
-            --side-gap: 20px; --glass-bg: rgba(255, 255, 255, 0.85); --glass-blur: blur(20px);
-            --glass-border: 1px solid rgba(0, 0, 0, 0.05); 
+            --side-gap: 20px; --glass-bg: rgba(255, 255, 255, 0.8); --glass-blur: blur(25px);
+            --glass-border: 1px solid rgba(0, 0, 0, 0.04); 
             --radius-lg: 28px; --radius-md: 14px;
             --font-sans: -apple-system, "SF Pro Display", "SF Pro Text", "PingFang SC", "Helvetica Neue", Helvetica, Arial, sans-serif;
             --font-mono: "SF Pro Text", ui-monospace, SFMono-Regular, SF Pro Icons, "PingFang SC", monospace;
         }
         
-        /* 彻底消除分界线：从根源上将全局环境底色死死锁定为纯净白 */
+        /* 全局环境拉齐冷灰色，确保移动端过度状态绝对一致 */
         html, body {
             margin: 0; padding: 0; width: 100%; min-height: 100%;
-            background-color: #ffffff; color: #1d1d1f;
+            background-color: var(--bg-base); color: #1d1d1f;
             font-family: var(--font-sans);
             -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; overflow-x: hidden;
         }
@@ -34,16 +35,16 @@
         
         body.modal-open-fixed {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden;
-            background-color: #ffffff !important;
+            background-color: var(--bg-base) !important;
         }
 
         body:has(#auth-ui:not([style*="display: none"])) header {
             display: none !important;
         }
         
-        /* 弹窗打开时：保持导航栏与遮罩底层色完全相同（均属于纯白系图层），使其天衣无缝 */
+        /* 弹窗激活时，让原本冷灰的导航栏彻底隐藏底色，交由全屏毛玻璃处理 */
         body:has(.modal-overlay[style*="display: flex"]) header {
-            background: #ffffff !important;
+            background: transparent !important;
             backdrop-filter: none !important;
             -webkit-backdrop-filter: none !important;
             border-bottom-color: transparent !important;
@@ -58,23 +59,23 @@
         body.unlocked .gradient-bg { display: block; }
         @keyframes gradientFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         
+        /* 顶部栏更新：默认采用和背景完全相同的冷灰，完美消灭任何首页状态下的突兀白线 */
         header {
             position: fixed; top: 0; left: 0; width: 100%;
             padding: calc(18px + env(safe-area-inset-top)) var(--side-gap) 15px;
             z-index: 100; display: flex; justify-content: space-between; align-items: center;
-            background: #ffffff; border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: var(--bg-base); border-bottom: 1px solid rgba(0, 0, 0, 0.03);
         }
         .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
         .brand-logo { color: var(--accent); display: flex; align-items: center; }
         .brand-name { font-size: 19px; font-weight: 800; letter-spacing: 0.25em; text-transform: uppercase; }
 
         .header-actions { display: flex; gap: 10px; visibility: hidden; align-items: center; flex: 1; justify-content: flex-end; margin-left: 12px; }
-        .action-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 12px; background: rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.02); flex-shrink: 0; color: #1d1d1f; transition: transform 0.15s ease; }
+        .action-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 12px; background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0, 0, 0, 0.03); flex-shrink: 0; color: #1d1d1f; transition: transform 0.15s ease; }
         .action-btn:active { transform: scale(0.92); }
         
-        /* 页面包裹层保持通透白，规避多余色块引起的边距非对称 Bug */
         .page-wrapper { 
-            width: 100%; max-width: 1000px; margin: 0 auto; background-color: #ffffff;
+            width: 100%; max-width: 1000px; margin: 0 auto; 
             padding: calc(106px + env(safe-area-inset-top)) var(--side-gap) 40px; 
         }
         @media (min-width: 768px) { .page-wrapper { padding-top: calc(116px + env(safe-area-inset-top)); } }
@@ -82,26 +83,24 @@
         #list-container { display: grid; grid-template-columns: 100%; gap: 16px; }
         @media (min-width: 768px) { #list-container { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
         
-        /* 首页卡片微调加深：采用纯净的轻灰底色（#f5f5f7）衬托，边框克制，在纯白画布上层次极其清晰舒服 */
+        /* 首页卡片更新：采用纯白，配合微弱的高清物理阴影，在冷灰大背景上具有极其通透细腻的品质感 */
         .item-card { 
-            background: #f5f5f7;
+            background: #ffffff;
             border-radius: var(--radius-lg); 
-            border: 1px solid rgba(0, 0, 0, 0.02); 
+            border: 1px solid rgba(0, 0, 0, 0.01); 
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.015);
             padding: 24px; position: relative; min-height: 110px; cursor: pointer; -webkit-user-select: none; user-select: none; width: 100%;
             transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
         }
         
-        /* 弹窗搜索卡片：同样采用轻灰内衬，保持风格绝对统一 */
         .search-result-card {
-            background: #f5f5f7; backdrop-filter: none; -webkit-backdrop-filter: none;
-            border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.02); padding: 20px; min-height: auto;
+            background: #ffffff; border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.02); padding: 20px; min-height: auto;
             transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
         }
 
         @media (hover: hover) {
-            /* Hover 反馈：卡片滑过时瞬间变纯白亮起，边缘显现精细描边 */
             .item-card:hover, .search-result-card:hover { 
-                transform: translateY(-2px); background: #ffffff; border-color: rgba(0, 0, 0, 0.06); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02) !important; 
+                transform: translateY(-2px); background: #ffffff; border-color: rgba(0, 0, 0, 0.06); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.03) !important; 
             }
         }
         
@@ -136,22 +135,22 @@
         .primary-btn { width: 100%; height: 50px; background: var(--accent); border: none; border-radius: var(--radius-md); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.3s; font-family: var(--font-sans); }
         .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* 弹窗遮罩层：高透磨砂纯白（rgba(255, 255, 255, 0.6)） */
+        /* 弹窗遮罩层：高级透光磨砂白，雾化底层卡片，并在灵动岛边缘极其丝滑地过渡 */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.6); z-index: 200; display: none; 
+            background: rgba(242, 242, 247, 0.6); z-index: 200; display: none; 
             align-items: center; justify-content: center; padding: var(--side-gap);
-            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
         }
         
         #pass-modal-overlay { z-index: 210; }
 
-        /* 弹出菜单面板：纯白（#ffffff），四周带有极细柔和微弱边缘描边，极富悬浮感 */
+        /* 弹出面板：饱满干净的纯白色，与磨砂底色和冷灰背景共同构成教科书般的 Apple 三层阶梯深度 */
         .page-modal-content { 
             width: 100%; max-width: 420px; height: auto; max-height: 85vh; 
             display: flex; flex-direction: column; text-align: left;
             background: #ffffff; 
-            border-radius: 30px; padding: 26px; box-shadow: 0 30px 70px rgba(0, 0, 0, 0.08); border: 1px solid rgba(0, 0, 0, 0.04);
+            border-radius: 30px; padding: 26px; box-shadow: 0 30px 70px rgba(0, 0, 0, 0.1); border: 1px solid rgba(0, 0, 0, 0.03);
             overflow: hidden; position: relative;
             animation: applePopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -188,15 +187,15 @@
         }
         .info-cell-group::-webkit-scrollbar, .apple-group-box::-webkit-scrollbar { display: none; width: 0; }
 
-        /* 二级面板内衬卡片：采用轻柔的灰色（rgba(0, 0, 0, 0.03)）和面板区分 */
+        /* 面板内村单元格：采用高质感浅灰色（#f5f5f7），与纯白面板和纯白首页卡片完美映射呼应 */
         .info-block-item {
-            background: rgba(0, 0, 0, 0.03); border-radius: 16px; padding: 12px 16px;
+            background: #f5f5f7; border-radius: 16px; padding: 12px 16px;
             border: 1px solid rgba(0, 0, 0, 0.01); display: flex; flex-direction: column; gap: 4px; width: 100%;
             cursor: pointer; transition: background-color 0.2s, border-color 0.25s, box-shadow 0.25s; flex-shrink: 0;
         }
         
         .info-block-item.view-mode-active { cursor: pointer; }
-        .info-block-item.view-mode-active:active { background-color: rgba(0, 0, 0, 0.06); }
+        .info-block-item.view-mode-active:active { background-color: rgba(0, 0, 0, 0.05); }
         .info-block-item.edit-mode-active { cursor: default; background: #ffffff; border-color: rgba(0, 0, 0, 0.05); }
         .info-block-item:focus-within { background: #ffffff; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.08); }
         

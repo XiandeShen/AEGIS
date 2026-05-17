@@ -27,6 +27,8 @@
             background-color: var(--bg-base); color: #1d1d1f;
             font-family: var(--font-sans);
             -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; overflow-x: hidden;
+            /* 首页及全局交由系统接管，采用平滑滚动体验 */
+            scroll-behavior: smooth;
         }
         
         body.modal-open-fixed {
@@ -111,10 +113,11 @@
         
         #pass-modal-overlay { z-index: 210; }
 
-        /* ─── 极致对齐：让所有核心弹窗的高宽、上下间距在任意屏幕下达成绝对一致 ─── */
+        /* ─── 极致对齐：移除强制高宽限制，交由系统自适应管理 ─── */
         .page-modal-content { 
             width: 100%; max-width: 420px; 
-            height: 78vh; /* 统一采用屏幕可见高度的 78% 作为硬性标准尺寸，规避小屏截断问题 */
+            height: auto; /* 去掉硬性的 78vh，让内容自动撑开，较少内容无需滚动 */
+            max-height: 85vh; /* 仅在大屏幕/超长内容时设立兜底防线 */
             display: flex; flex-direction: column; text-align: left;
             background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
             border-radius: 30px; padding: 26px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: var(--glass-border);
@@ -122,8 +125,8 @@
             animation: applePopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        .page-modal-content::-webkit-scrollbar { width: 4px; }
-        .page-modal-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 10px; }
+        /* 隐藏二级窗口本身不美观的滚动条 */
+        .page-modal-content::-webkit-scrollbar { display: none; width: 0; }
 
         @keyframes applePopIn {
             from { opacity: 0; transform: scale(0.95) translateY(8px); }
@@ -145,14 +148,15 @@
         .modal-icon-wrapper svg { width: 22px; height: 22px; }
         .page-modal-content h3 { font-size: 20px; font-weight: 700; color: #1d1d1f; margin: 0; letter-spacing: -0.5px; }
 
-        /* 详情与新增页的内部容器设为可滚动 */
+        /* 详情与新增页的内部容器：隐藏滚动条线，保持原生干净清爽 */
         .info-cell-group, .apple-group-box { 
             background: transparent; border: none; padding: 0; margin-bottom: 6px; 
             display: flex; flex-direction: column; gap: 12px; 
             flex: 1; overflow-y: auto; padding-right: 2px;
+            -webkit-overflow-scrolling: touch; /* 保留 iOS 的顺滑弹性回弹 */
         }
-        .info-cell-group::-webkit-scrollbar, .apple-group-box::-webkit-scrollbar { width: 3px; }
-        .info-cell-group::-webkit-scrollbar-thumb, .apple-group-box::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.06); border-radius: 10px; }
+        /* 彻底消除电脑端等各平台的滚动条视觉污染 */
+        .info-cell-group::-webkit-scrollbar, .apple-group-box::-webkit-scrollbar { display: none; width: 0; }
 
         .info-block-item {
             background: rgba(255, 255, 255, 0.5); border-radius: 16px; padding: 12px 16px;
@@ -180,10 +184,11 @@
             font-family: var(--font-sans) !important; 
             width: 100%; text-align: left; margin: 0 !important;
             padding-right: 8px !important;
+            -webkit-overflow-scrolling: touch;
         }
         div.note-fixed-height-box { padding-top: 2px !important; } 
-        .note-fixed-height-box::-webkit-scrollbar { width: 3px; }
-        .note-fixed-height-box::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 4px; }
+        /* 隐藏备注框内部微小的滚动条 */
+        .note-fixed-height-box::-webkit-scrollbar { display: none; width: 0; }
 
         .info-block-item input, .info-block-item textarea {
             background: transparent !important; border: none !important; margin: 0 !important;
@@ -204,11 +209,10 @@
         .modal-search-results-area {
             display: flex; flex-direction: column; width: 100%; flex: 1; overflow-y: auto;
             padding-right: 6px; margin-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
         }
-        .modal-search-results-area::-webkit-scrollbar { width: 3px; }
-        .modal-search-results-area::-webkit-scrollbar-track { background: transparent; }
-        .modal-search-results-area::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.08); border-radius: 10px; }
-        .modal-search-results-area:hover::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); }
+        /* 搜索框结果区域隐藏滚动条 */
+        .modal-search-results-area::-webkit-scrollbar { display: none; width: 0; }
 
         .modal-action-row { display: flex; gap: 10px; width: 100%; margin-top: 14px; flex-shrink: 0; }
         .modal-action-row .primary-btn, .modal-action-row .secondary-text-btn { flex: 1; height: 48px; border-radius: var(--radius-md); font-size: 15px; font-weight: 600; border: none; cursor: pointer; font-family: var(--font-sans); }

@@ -27,12 +27,17 @@
             background-color: var(--bg-base); color: #1d1d1f;
             font-family: var(--font-sans);
             -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; overflow-x: hidden;
-            /* 首页及全局交由系统接管，采用平滑滚动体验 */
             scroll-behavior: smooth;
         }
         
         body.modal-open-fixed {
-            position: fixed !important; left: 0 !important; width: 100% !important; overflow: hidden !important;
+            position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; overflow: hidden !important;
+        }
+
+        body:has(.modal-overlay[style*="display: flex"]) header {
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
         }
 
         .gradient-bg {
@@ -58,8 +63,8 @@
         body:has(#auth-ui:not([style*="display: none"])) header .brand { opacity: 0; pointer-events: none; }
 
         .header-actions { display: flex; gap: 10px; visibility: hidden; align-items: center; flex: 1; justify-content: flex-end; margin-left: 12px; }
-        .action-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 12px; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(0, 0, 0, 0.05); flex-shrink: 0; color: #1d1d1f; }
-        .action-btn:active { transform: scale(0.94); }
+        .action-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 12px; background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(0, 0, 0, 0.05); flex-shrink: 0; color: #1d1d1f; transition: transform 0.15s ease; }
+        .action-btn:active { transform: scale(0.92); }
         
         .page-wrapper { width: 100%; max-width: 1000px; margin: 0 auto; min-height: 100vh; padding: calc(96px + env(safe-area-inset-top)) var(--side-gap) 40px; }
         @media (min-width: 768px) { .page-wrapper { padding-top: calc(106px + env(safe-area-inset-top)); } }
@@ -70,18 +75,26 @@
         .item-card { 
             background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
             border-radius: var(--radius-lg); border: var(--glass-border); box-shadow: var(--card-shadow); 
-            padding: 24px; position: relative; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; min-height: 110px;
+            padding: 24px; position: relative; transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, background-color 0.2s ease; min-height: 110px;
             cursor: pointer; -webkit-user-select: none; user-select: none; width: 100%;
         }
-        .item-card:hover { transform: translateY(-2px); box-shadow: 0 12px 38px rgba(0, 0, 0, 0.08); }
-        .item-card:active { transform: translateY(0) scale(0.99); opacity: 0.9; }
         
-        .search-result-card {
-            background: rgba(255, 255, 255, 0.6); backdrop-filter: none; -webkit-backdrop-filter: none;
-            border-radius: 20px; border: 1px solid rgba(0,0,0,0.03); box-shadow: none;
-            padding: 16px; min-height: auto; margin-bottom: 10px;
+        @media (hover: hover) {
+            .item-card:hover { transform: translateY(-3px); box-shadow: 0 12px 38px rgba(0, 0, 0, 0.08); }
+            /* PC 端 Hover 反馈：卡片浮起，背景变为更纯净的白色，边框轻微显现 */
+            .search-result-card:hover { transform: translateY(-2px); background: #ffffff; border-color: rgba(0, 0, 0, 0.06); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02) !important; }
         }
-        .search-result-card:hover { transform: translateY(-1px); background: #ffffff; }
+        
+        .item-card:active { transform: scale(0.97) translateY(0); opacity: 0.85; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02); }
+        
+        /* 移动端搜索卡片重构：采用纯白卡片+极轻边框，避免灰色带来的沉闷感，同时无重叠深阴影 */
+        .search-result-card {
+            background: #ffffff; backdrop-filter: none; -webkit-backdrop-filter: none;
+            border-radius: 20px; border: 1px solid rgba(0, 0, 0, 0.04); box-shadow: none !important;
+            padding: 20px; min-height: auto; margin-bottom: 0;
+        }
+        /* 移动端特调：手指按压时（:active）转化为内敛的浅灰色反馈，并附带平滑缩放 */
+        .search-result-card:active { transform: scale(0.97); background-color: #f2f2f7; border-color: rgba(0, 0, 0, 0.02); opacity: 0.95; }
 
         .card-info { padding-right: 0; text-align: left; }
         .item-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin:0; font-size:18px; font-weight: 700; color: #1d1d1f; }
@@ -91,7 +104,7 @@
         .item-user { color:var(--secondary); margin: 0; }
         .pass-val { color: var(--accent); opacity: 0.7; }
         .item-time { position: absolute; bottom: 24px; right: 24px; font-size: 11px; color: var(--secondary); opacity: 0.4; font-family: var(--font-sans); }
-        .search-result-card .item-time { bottom: 16px; right: 16px; }
+        .search-result-card .item-time { bottom: 20px; right: 20px; }
 
         .auth-viewport { 
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -105,7 +118,8 @@
         .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .modal-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.2); z-index: 200; display: none; 
             align-items: center; justify-content: center; padding: var(--side-gap);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -113,19 +127,20 @@
         
         #pass-modal-overlay { z-index: 210; }
 
-        /* ─── 极致对齐：移除强制高宽限制，交由系统自适应管理 ─── */
         .page-modal-content { 
             width: 100%; max-width: 420px; 
-            height: auto; /* 去掉硬性的 78vh，让内容自动撑开，较少内容无需滚动 */
-            max-height: 85vh; /* 仅在大屏幕/超长内容时设立兜底防线 */
+            height: auto; 
+            max-height: 85vh; 
             display: flex; flex-direction: column; text-align: left;
             background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
             border-radius: 30px; padding: 26px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); border: var(--glass-border);
             overflow: hidden; position: relative;
             animation: applePopIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+        @media (min-width: 768px) {
+            #search-modal-overlay .page-modal-content { max-width: 680px; padding: 30px; }
+        }
 
-        /* 隐藏二级窗口本身不美观的滚动条 */
         .page-modal-content::-webkit-scrollbar { display: none; width: 0; }
 
         @keyframes applePopIn {
@@ -139,6 +154,7 @@
             border-radius: 50%; background: rgba(0, 0, 0, 0.04); color: var(--secondary);
             cursor: pointer; transition: background 0.2s, color 0.2s; z-index: 10;
         }
+        @media (min-width: 768px) { .modal-close-x { top: 30px; right: 30px; } }
         .modal-close-x:hover { background: rgba(0, 0, 0, 0.08); color: #1d1d1f; }
         .modal-close-x:active { transform: scale(0.95); }
 
@@ -148,14 +164,12 @@
         .modal-icon-wrapper svg { width: 22px; height: 22px; }
         .page-modal-content h3 { font-size: 20px; font-weight: 700; color: #1d1d1f; margin: 0; letter-spacing: -0.5px; }
 
-        /* 详情与新增页的内部容器：隐藏滚动条线，保持原生干净清爽 */
         .info-cell-group, .apple-group-box { 
             background: transparent; border: none; padding: 0; margin-bottom: 6px; 
             display: flex; flex-direction: column; gap: 12px; 
             flex: 1; overflow-y: auto; padding-right: 2px;
-            -webkit-overflow-scrolling: touch; /* 保留 iOS 的顺滑弹性回弹 */
+            -webkit-overflow-scrolling: touch; 
         }
-        /* 彻底消除电脑端等各平台的滚动条视觉污染 */
         .info-cell-group::-webkit-scrollbar, .apple-group-box::-webkit-scrollbar { display: none; width: 0; }
 
         .info-block-item {
@@ -187,7 +201,6 @@
             -webkit-overflow-scrolling: touch;
         }
         div.note-fixed-height-box { padding-top: 2px !important; } 
-        /* 隐藏备注框内部微小的滚动条 */
         .note-fixed-height-box::-webkit-scrollbar { display: none; width: 0; }
 
         .info-block-item input, .info-block-item textarea {
@@ -201,17 +214,19 @@
         .modal-search-box-wrapper {
             background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px;
             padding: 2px 14px; display: flex; align-items: center; gap: 10px; height: 50px; margin-bottom: 20px;
-            transition: border-color 0.25s, box-shadow 0.25s; flex-shrink: 0;
+            transition: border-color 0.25s, box-shadow 0.25s, background-color 0.25s; flex-shrink: 0;
         }
-        .modal-search-box-wrapper:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1); }
+        .modal-search-box-wrapper:focus-within { background: #ffffff; border-color: var(--accent); box-shadow: 0 0 0 3.5px rgba(0, 122, 255, 0.15); }
         .modal-search-box-wrapper input { border: none; outline: none; font-size: 16px; flex: 1; color: #1d1d1f; height: 100%; background: transparent; font-family: var(--font-sans); }
         
         .modal-search-results-area {
-            display: flex; flex-direction: column; width: 100%; flex: 1; overflow-y: auto;
-            padding-right: 6px; margin-bottom: 4px;
+            display: grid; grid-template-columns: 100%; gap: 12px; width: 100%; flex: 1; overflow-y: auto;
+            padding-right: 6px; margin-bottom: 4px; align-content: start;
             -webkit-overflow-scrolling: touch;
         }
-        /* 搜索框结果区域隐藏滚动条 */
+        @media (min-width: 768px) {
+            .modal-search-results-area { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        }
         .modal-search-results-area::-webkit-scrollbar { display: none; width: 0; }
 
         .modal-action-row { display: flex; gap: 10px; width: 100%; margin-top: 14px; flex-shrink: 0; }
@@ -722,9 +737,18 @@
         } else {
             overlay.style.display = 'none';
             if (!document.querySelector('.modal-overlay[style*="display: flex"]')) {
+                document.documentElement.style.scrollBehavior = 'auto';
+                document.body.style.scrollBehavior = 'auto';
+
                 document.body.classList.remove('modal-open-fixed'); 
                 document.body.style.top = ''; 
+
                 window.scrollTo(0, lastScrollY);
+                
+                setTimeout(() => {
+                    document.documentElement.style.scrollBehavior = '';
+                    document.body.style.scrollBehavior = '';
+                }, 40);
             }
         }
     }

@@ -147,10 +147,12 @@
         
         #pass-modal-overlay { z-index: 210; }
 
-        /* 通用弹窗内容：保持原生的绝对垂直居中定位 */
+        /* 🛠️ 【100% 还原基础样式】：
+           让除搜索弹窗外的所有普通弹窗恢复你原本的物理绝对居中！
+        */
         .page-modal-content { 
             position: fixed; 
-            top: 50%; 
+            top: calc(50% - env(safe-area-inset-bottom) / 2); 
             left: 50%;
             transform: translate(-50%, -50%);
             width: calc(100% - (var(--side-gap) * 2)); max-width: 420px; 
@@ -163,32 +165,32 @@
             animation: applePopIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* 【针对搜索弹窗的行业级标准规范布局】：
-          直接通过固定比例脱离不稳定的垂直居中。让它天然固定在键盘上方的舒适区（顶部向下12%位置），
-          无论卡片出来多少，输入框物理坐标卡死不动，彻底解决越顶越高和错位问题！
+        /* 🛠️ 【搜索独立规范】：
+           将搜索弹窗的动画与布局完全剥离出来，绝对不会影响卡片和其它普通弹窗的弹出！
         */
         #search-modal-overlay .page-modal-content {
             top: 12%;
-            transform: translate(-50%, 0); /* 只居中左右，不居中上下 */
-            height: calc(84vh - env(safe-area-inset-bottom) - 12%); /* 锁定最大高度范围 */
+            transform: translate(-50%, 0); /* 搜索专用：只居中左右，不垂直居中 */
+            height: calc(84vh - env(safe-area-inset-bottom) - 12%);
+            animation: searchPopIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @media (min-width: 768px) {
-            .page-modal-content { top: 50%; }
-            #search-modal-overlay .page-modal-content { max-width: 680px; padding: 30px; top: 50%; transform: translate(-50%, -50%); height: auto; }
+            #search-modal-overlay .page-modal-content { max-width: 680px; padding: 30px; top: 50%; transform: translate(-50%, -50%); height: auto; animation: applePopIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         }
 
         .page-modal-content::-webkit-scrollbar { display: none; width: 0; }
 
+        /* 你原本完美的普通弹窗居中动画 */
         @keyframes applePopIn {
+            from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)) scale(0.96); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* 搜索弹窗专用的顶部入场动画 */
+        @keyframes searchPopIn {
             from { opacity: 0; transform: translate(-50%, calc(-12% + 12px)) scale(0.96); }
             to { opacity: 1; transform: translate(-50%, 0) scale(1); }
-        }
-        @media (min-width: 768px) {
-            @keyframes applePopIn {
-                from { opacity: 0; transform: translate(-50%, calc(-50% + 12px)) scale(0.96); }
-                to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            }
         }
 
         .modal-close-x {
@@ -289,10 +291,6 @@
         
         .modal-action-row .danger-text-btn { flex: 1; height: 48px; border-radius: var(--radius-md); font-size: 15px; font-weight: 600; border: none; cursor: pointer; background: rgba(255, 59, 48, 0.08); color: var(--danger); transition: background 0.2s; font-family: var(--font-sans); }
         .modal-action-row .danger-text-btn:active { background: rgba(255, 59, 48, 0.15); transform: scale(0.98); }
-
-        #toast { position: fixed; bottom: 50px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(0,0,0,0.85); color: white; padding: 12px 24px; border-radius: 24px; z-index: 1000; opacity: 0; pointer-events: none; transition: all 0.4s; font-family: var(--font-sans); }
-        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-        .status-msg { width: 100%; padding: 40px 0; color: var(--secondary); text-align: center; grid-column: 1/-1; font-size: 14px; font-family: var(--font-sans); }
 
         #login-card {
             background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.45); box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.01), 0 24px 60px -8px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.4);
@@ -642,8 +640,6 @@
         handleModalSearchEvent(''); 
         toggleModal('search-modal', true);
         
-        // 【规范化调整】：将 150ms 缩短为 40ms，消除视觉差。
-        // 同时在 Safari 浏览器中，它会稳稳地停在 12% 的舒适位置等待键盘唤醒。
         setTimeout(() => {
             const searchInput = document.getElementById('modal-search-input');
             if (searchInput) searchInput.focus();

@@ -54,15 +54,15 @@
         }
         @keyframes gradientFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         
-        /* 主顶栏高度规范 */
+        /* 主顶栏：回归纯粹的标题与核心操作流 */
         header {
             position: fixed; top: 0; left: 0; width: 100%;
             padding: calc(16px + env(safe-area-inset-top)) var(--side-gap) 16px;
             z-index: 100; display: flex; justify-content: space-between; align-items: center;
-            background: #f5f5f7; transition: padding 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            background: #f5f5f7; 
             height: calc(72px + env(safe-area-inset-top)); 
         }
-        .brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; transition: opacity 0.25s ease; height: 40px; }
+        .brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; height: 40px; }
         
         /* 全局大一统的【正方形】（带10px微圆角）底色图标容器 */
         .brand-logo-wrapper, .modal-icon-wrapper { 
@@ -80,29 +80,33 @@
             opacity: 0; pointer-events: none;
         }
 
-        .header-actions { display: flex; gap: 10px; visibility: hidden; align-items: center; flex: 1; justify-content: flex-end; margin-left: 12px; height: 40px; }
-        
-        /* 搜索框与操作按钮改为一致的正方形微圆角 */
-        .search-wrapper { display: flex; align-items: center; background: rgba(0, 0, 0, 0.04); border-radius: 10px; width: 40px; height: 40px; overflow: hidden; position: relative; border: 1px solid transparent; transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s, width 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
-        .search-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; color: var(--secondary); flex-shrink: 0; }
-        .search-input { border: none; background: transparent; height: 100%; width: 0; padding: 0; font-size: 16px; outline: none !important; box-shadow: none !important; color: #1d1d1f; line-height: normal; font-family: var(--font-apple); }
-        .search-clear { width: 32px; height: 40px; color: var(--secondary); cursor: pointer; display: none; align-items: center; justify-content: center; flex-shrink: 0; }
-        
-        .search-wrapper:focus-within { background: #fff; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12); }
-
-        @media (max-width: 767px) {
-            .header-actions.search-active .action-btn { display: none; }
-            .header-actions.search-active .search-wrapper { width: 100%; max-width: 100%; background: #fff; box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12); border-color: var(--accent); }
-            .header-actions.search-active .search-input { width: 100%; padding: 0 4px; }
-        }
-        @media (min-width: 768px) { .search-wrapper { width: 200px; border-radius: 10px; } .search-input { width: 100%; padding-right: 10px; } }
-        .search-wrapper.has-content .search-clear { display: flex; }
+        .header-actions { display: flex; gap: 10px; visibility: hidden; align-items: center; height: 40px; }
         
         /* 顶栏操作按钮：正方形微圆角设计 */
         .action-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 10px; background: rgba(0, 0, 0, 0.04); border: 1px solid transparent; flex-shrink: 0; }
         .action-btn:active { background: rgba(0, 0, 0, 0.08); }
         
-        .page-wrapper { width: 100%; max-width: 1000px; margin: 0 auto; min-height: 100vh; padding: calc(92px + env(safe-area-inset-top)) var(--side-gap) 40px; transition: padding 0.3s ease; }
+        /* 主内边距区：留出顶部栏高度占位 */
+        .page-wrapper { width: 100%; max-width: 1000px; margin: 0 auto; min-height: 100vh; padding: calc(76px + env(safe-area-inset-top)) var(--side-gap) 40px; }
+
+        /* ------------------ 优化重构：常驻卡片上方的搜索框 ------------------ */
+        .main-search-area {
+            width: 100%;
+            margin-bottom: 20px;
+            display: none; /* 初始随 main-ui 一起在同步完成后展示 */
+        }
+        .search-wrapper { 
+            display: flex; align-items: center; background: rgba(0, 0, 0, 0.04); border-radius: 14px; 
+            width: 100%; height: 46px; overflow: hidden; position: relative; border: 1px solid transparent; 
+            transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s; 
+        }
+        .search-icon { width: 44px; height: 46px; display: flex; align-items: center; justify-content: center; color: var(--secondary); flex-shrink: 0; }
+        .search-input { border: none; background: transparent; height: 100%; width: 100%; padding: 0 4px 0 0; font-size: 16px; outline: none !important; box-shadow: none !important; color: #1d1d1f; line-height: normal; font-family: var(--font-apple); }
+        .search-input::placeholder { color: #a1a1a6; }
+        .search-clear { width: 40px; height: 46px; color: var(--secondary); cursor: pointer; display: none; align-items: center; justify-content: center; flex-shrink: 0; }
+        
+        .search-wrapper:focus-within { background: #fff; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12); }
+        .search-wrapper.has-content .search-clear { display: flex; }
 
         #list-container { display: grid; grid-template-columns: 100%; gap: 16px; }
         @media (min-width: 768px) { #list-container { grid-template-columns: repeat(2, 1fr); gap: 20px; } }
@@ -138,7 +142,7 @@
         .primary-btn { width: 100%; height: 50px; background: var(--accent); border: none; border-radius: var(--radius-md); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.3s; font-family: var(--font-apple); }
         .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* 模态框基础遮罩 */
+        /* 模态框遮罩 */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0, 0, 0, 0.15); z-index: 200; display: none; 
@@ -176,7 +180,7 @@
         .modal-header-left { display: flex; align-items: center; gap: 12px; height: 40px; }
         .page-modal-content h3 { font-size: 20px; font-weight: 700; color: #1d1d1f; margin: 0; letter-spacing: -0.5px; font-family: var(--font-apple); line-height: 1.2; }
 
-        /* ================= 移动端自适应（精细对齐调整） ================= */
+        /* ================= 移动端自适应 ================= */
         @media (max-width: 480px) {
             .modal-overlay { 
                 background: #f5f5f7; 
@@ -194,7 +198,6 @@
                 overflow-y: visible; 
             }
             
-            /* 移动端弹出层的标题栏位置、内边距，完全像素级同步主顶栏 */
             .modal-page-header { 
                 display: flex !important;
                 flex-direction: row !important;
@@ -213,7 +216,6 @@
                 height: 40px !important; 
             }
             
-            /* 取消绝对定位，关闭按钮也同步为正方形微圆角 */
             .modal-close-x { 
                 position: static !important; 
                 width: 40px !important; 
@@ -269,8 +271,6 @@
             font-family: var(--font-apple);
         }
 
-        /* ------------------ 终极防抖与对齐样式控制 ------------------ */
-        /* 详情文本核心样式：彻底控制高度与行高，与 input 完全一致 */
         .info-block-content {
             font-size: 16px;
             color: #1d1d1f;
@@ -278,20 +278,18 @@
             word-break: break-all;
             width: 100%;
             height: 26px; 
-            line-height: 26px !important; /* 强制统一行高 */
+            line-height: 26px !important; 
             display: block;
             overflow: hidden;
             padding: 0 !important;
             margin: 0 !important;
         }
-        /* 字体分流：名称、账号、常规备注用常规字体，密码用等宽字体 */
         #detail-name, #detail-user, .font-style-apple { font-family: var(--font-apple) !important; }
         #detail-pass, .font-style-mono { font-family: var(--font-mono) !important; }
         
         .info-block-content.highlight { color: var(--accent); font-weight: 700; }
         .info-block-content.note-style { font-size: 15px; color: #1d1d1f; }
         
-        /* 暂无备注时的优雅高品质灰度样式 */
         .info-block-content.note-empty {
             color: var(--secondary);
             opacity: 0.5;
@@ -299,7 +297,6 @@
             font-family: var(--font-apple) !important;
         }
 
-        /* 表单输入控件基本规则：完全抹平浏览器原生内外边距与行高带来的塌陷 */
         .info-block-item input, .info-block-item textarea {
             background: transparent !important;
             border: none !important;
@@ -307,22 +304,20 @@
             padding: 0 !important;
             border-radius: 0 !important;
             height: 26px !important; 
-            line-height: 26px !important; /* 原地像素对齐 */
+            line-height: 26px !important; 
             font-size: 16px !important;
             box-shadow: none !important;
             width: 100% !important;
             outline: none !important; 
             color: #1d1d1f !important;
         }
-        /* 针对输入框也进行严格的字体对齐管理 */
         #edit-name, #edit-user { font-family: var(--font-apple) !important; }
         #edit-pass { font-family: var(--font-mono) !important; }
 
-        /* 详情和编辑态在长文本（备注）下高度像素级完全对齐 */
         .info-block-item textarea.add-note-input, .info-block-content.note-container-fixed {
             height: 80px !important;
             max-height: 80px !important;
-            line-height: 1.4 !important; /* 长文本使用标准宽松行高 */
+            line-height: 1.4 !important; 
             padding-top: 0 !important;
             resize: none;
             word-break: break-all;
@@ -404,15 +399,6 @@
         <div class="brand-name">AEGIS</div>
     </div>
     <div class="header-actions" id="actions">
-        <div class="search-wrapper" id="search-wrapper">
-            <div class="search-icon" onclick="focusSearch()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            </div>
-            <input type="text" id="search-bar" class="search-input" placeholder="搜索..." oninput="handleSearchUI(this)" onfocus="handleSearchUI(this)" onblur="handleSearchUI(this)">
-            <div class="search-clear" onmousedown="event.preventDefault();clearSearch()" ontouchstart="event.preventDefault();clearSearch()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </div>
-        </div>
         <div class="action-btn" onmousedown="event.preventDefault();openAddModal()" ontouchstart="event.preventDefault();openAddModal()" style="color:var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
         <div class="action-btn" onmousedown="event.preventDefault();softLock()" ontouchstart="event.preventDefault();softLock()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
     </div>
@@ -437,7 +423,23 @@
     </div>
 </div>
 
-<div class="page-wrapper" id="main-ui" style="display:none"><div id="list-container"></div></div>
+<div class="page-wrapper" id="main-ui" style="display:none">
+    <div class="main-search-area" id="search-zone">
+        <div class="search-wrapper" id="search-wrapper">
+            <div class="search-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <input type="text" id="search-bar" class="search-input" placeholder="搜索凭据名称或账号..." 
+                   oninput="handleSearchUI(this)" 
+                   onkeydown="if(event.keyCode===13){this.blur();}">
+            <div class="search-clear" onmousedown="event.preventDefault();clearSearch()" ontouchstart="event.preventDefault();clearSearch()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+        </div>
+    </div>
+    
+    <div id="list-container"></div>
+</div>
 
 <div class="modal-overlay" id="add-modal-overlay">
     <div class="page-modal-content">
@@ -585,35 +587,25 @@
     let lastScrollY = 0, isInsideEditMode = false, activeItemBackup = null; 
 
     document.addEventListener('click', (e) => {
-        const bar = document.getElementById('search-bar');
-        const wrapper = document.getElementById('search-wrapper');
-        
-        if (wrapper && !wrapper.contains(e.target) && bar && bar.value === "" && !e.target.closest('.item-card')) { bar.blur(); }
         if (pendingDeleteCardId && !e.target.closest('#detail-del-btn')) { clearPendingDelete(); }
     });
 
     document.addEventListener('touchmove', (e) => {
         if (document.body.classList.contains('modal-open-fixed')) {
-            if (!e.target.closest('.modal-overlay')) {
-                e.preventDefault();
-            }
-        } else {
-            const bar = document.getElementById('search-bar');
-            if (bar === document.activeElement && bar.value === "") { bar.blur(); }
+            if (!e.target.closest('.modal-overlay')) { e.preventDefault(); }
         }
     }, { passive: false });
 
-    function focusSearch() { document.getElementById('search-bar').focus(); }
-    
+    // 常驻常态搜索逻辑：清脆流畅
     function handleSearchUI(input) {
-        const wrapper = document.getElementById('search-wrapper'), actions = document.getElementById('actions');
+        const wrapper = document.getElementById('search-wrapper');
         const hasText = input.value.length > 0;
-        const isFocused = document.activeElement === input;
+        
         if (hasText) wrapper.classList.add('has-content'); else wrapper.classList.remove('has-content');
-        if (isFocused || hasText) actions.classList.add('search-active'); else actions.classList.remove('search-active');
         handleSearch(input.value);
         
-        if ((isFocused || hasText) && window.scrollY > 10) {
+        // 仅在输入了有效检索内容，且页面已经下划时平滑推回顶部
+        if (hasText && window.scrollY > 20) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
@@ -869,6 +861,7 @@
 
         document.getElementById('auth-ui').style.display = 'none'; 
         document.getElementById('main-ui').style.display = 'block'; 
+        document.getElementById('search-zone').style.display = 'block'; // 验证解锁后优雅显示搜索常驻区
         document.getElementById('actions').style.visibility = 'visible'; 
         
         window.scrollTo(0, 0);

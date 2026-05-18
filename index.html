@@ -412,14 +412,14 @@
             </div>
             <div class="card-brand-name" id="auth-brand-text">AEGIS</div>
         </div>
-        <div class="auth-form-body">
+        <form class="auth-form-body" id="auth-form" onsubmit="event.preventDefault(); handleAuth();">
             <div id="setup-area" style="display:none;"><input type="password" id="gh-token" placeholder="GitHub Token (ghp_...)"></div>
             <div class="auth-input-button-row">
-                <input type="password" id="main-pass" placeholder="请键入密码" autofocus onkeydown="if(event.keyCode===13){handleAuth();}">
-                <button class="primary-btn" onclick="handleAuth()">登录</button>
+                <input type="password" id="main-pass" placeholder="请键入密码" autofocus>
+                <button type="submit" class="primary-btn" id="login-submit-btn">登录</button>
             </div>
             <p id="reset-link" style="font-size:12px; color:#86868b; cursor:pointer; display:none; opacity:0.6" onclick="toggleModal('hard-reset', true)">重置 Token 配置</p>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -596,7 +596,6 @@
         }
     }, { passive: false });
 
-    // 常驻常态搜索逻辑：清脆流畅
     function handleSearchUI(input) {
         const wrapper = document.getElementById('search-wrapper');
         const hasText = input.value.length > 0;
@@ -604,7 +603,6 @@
         if (hasText) wrapper.classList.add('has-content'); else wrapper.classList.remove('has-content');
         handleSearch(input.value);
         
-        // 仅在输入了有效检索内容，且页面已经下划时平滑推回顶部
         if (hasText && window.scrollY > 20) {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -836,56 +834,98 @@
     
     function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2000); }
 
+    // 优化：数据预加载 + 错误状态回滚
     async function handleAuth() {
         const pass = document.getElementById('main-pass').value; if (!pass) return;
+        const submitBtn = document.getElementById('login-submit-btn');
+        
+        submitBtn.disabled = true;
+        submitBtn.innerText = "解密中";
         
         document.getElementById('main-pass').blur();
         const tokenInput = document.getElementById('gh-token');
         if(tokenInput) tokenInput.blur();
         
-        await new Promise(resolve => setTimeout(resolve, 350)); 
+        await new Promise(resolve => {
+            window.requestAnimationFrame(() => {
+                setTimeout(resolve, 450); 
+            });
+        }); 
 
-        await CryptoSvc.deriveKey(pass);
-        if (!ENCRYPTED_TK) {
-            const tk = document.getElementById('gh-token').value.trim(); 
-            if (!tk.startsWith('ghp_')) { showToast("Token无效"); return; }
-            const encryptedTk = await CryptoSvc.encrypt(tk);
-            localStorage.setItem('ae_enc_tk', encryptedTk); FINAL_TOKEN = tk;
-        } else {
-            const decryptedTk = await CryptoSvc.decrypt(ENCRYPTED_TK);
-            decryptedTk ? FINAL_TOKEN = decryptedTk : (showToast("密码错误或数据损坏"));
-            if (!decryptedTk) return;
+        try {
+            await CryptoSvc.deriveKey(pass);
+            if (!ENCRYPTED_TK) {
+                const tk = document.getElementById('gh-token').value.trim(); 
+                if (!tk.startsWith('ghp_')) { 
+                    showToast("Token无效"); 
+                    submitBtn.disabled = false; submitBtn.innerText = "登录"; 
+                    return; 
+                }
+                const encryptedTk = await CryptoSvc.encrypt(tk);
+                localStorage.setItem('ae_enc_tk', encryptedTk); FINAL_TOKEN = tk;
+            } else {
+                const decryptedTk = await CryptoSvc.decrypt(ENCRYPTED_TK);
+                if (!decryptedTk) {
+                    showToast("密码错误或数据损坏");
+                    submitBtn.disabled = false; submitBtn.innerText = "登录";
+                    return;
+                }
+                FINAL_TOKEN = decryptedTk;
+            }
+            
+            // 更进：在此处直接进入后台静默数据预加载流程，不提前解锁主UI
+            submitBtn.innerText = "加载中";
+            const syncSuccess = await startPreloadSync();
+            
+            if (syncSuccess) {
+                // 只有数据获取并渲染完成后，再一口气优雅切入主UI
+                document.body.classList.add('unlocked');
+                document.getElementById('auth-ui').style.display = 'none'; 
+                document.getElementById('main-ui').style.display = 'block'; 
+                document.getElementById('search-zone').style.display = 'block'; 
+                document.getElementById('actions').style.visibility = 'visible'; 
+                
+                window.scrollTo(0, 0);
+                document.body.scrollTop = 0;
+            } else {
+                submitBtn.disabled = false; 
+                submitBtn.innerText = "登录";
+            }
+        } catch(e) {
+            showToast("解密失败，请重试");
+            submitBtn.disabled = false; submitBtn.innerText = "登录";
         }
-        
-        document.body.classList.add('unlocked');
-
-        document.getElementById('auth-ui').style.display = 'none'; 
-        document.getElementById('main-ui').style.display = 'block'; 
-        document.getElementById('search-zone').style.display = 'block'; // 验证解锁后优雅显示搜索常驻区
-        document.getElementById('actions').style.visibility = 'visible'; 
-        
-        window.scrollTo(0, 0);
-        document.body.scrollTop = 0;
-        
-        startSync();
     }
 
-    async function startSync() {
-        const container = document.getElementById('list-container'); container.innerHTML = '<div class="status-msg">同步中...</div>';
+    // 预加载静默网络流：获取云端并直接构建DOM
+    async function startPreloadSync() {
         try {
             const resp = await fetch('https://api.github.com/gists', { headers: { 'Authorization': `token ${FINAL_TOKEN}` } });
-            const data = await resp.json(); const db = data.find(g => g.files['aegis_db.json']);
+            if (!resp.ok) throw new Error("Network response error");
+            
+            const data = await resp.json(); 
+            const db = data.find(g => g.files['aegis_db.json']);
+            
             if(db) {
                 GIST_ID = db.id; localStorage.setItem('ae_gid', GIST_ID);
-                const detail = await (await fetch(db.url, { headers: { Authorization: `token ${FINAL_TOKEN}` } })).json();
+                const detailResp = await fetch(db.url, { headers: { Authorization: `token ${FINAL_TOKEN}` } });
+                const detail = await detailResp.json();
                 const rawContent = detail.files['aegis_db.json'].content;
                 let list = [];
                 if (rawContent && rawContent !== "[]") {
-                    const decrypted = await CryptoSvc.decrypt(rawContent); list = JSON.parse(decrypted || "[]");
+                    const decrypted = await CryptoSvc.decrypt(rawContent); 
+                    list = JSON.parse(decrypted || "[]");
                 }
-                render(list);
-            } else { startSyncNew(); }
-        } catch(e) { container.innerHTML = '<div class="status-msg">同步失败</div>'; }
+                render(list); // 此时列表已经在隐藏的DOM中渲染就绪
+                return true;
+            } else { 
+                // 属于新用户的空库初始化逻辑
+                return await startSyncNew(); 
+            }
+        } catch(e) { 
+            showToast("同步云端数据失败"); 
+            return false;
+        }
     }
 
     async function startSyncNew() {
@@ -894,8 +934,24 @@
                 method: 'POST', headers: { Authorization: `token ${FINAL_TOKEN}` },
                 body: JSON.stringify({ description: "Aegis Data", public: false, files: { "aegis_db.json": { content: "[]" } } })
             });
-            const data = await res.json(); GIST_ID = data.id; localStorage.setItem('ae_gid', GIST_ID); render([]);
-        } catch(e) { showToast("初始化失败"); }
+            if (!res.ok) return false;
+            const data = await res.json(); GIST_ID = data.id; localStorage.setItem('ae_gid', GIST_ID); 
+            render([]); 
+            return true;
+        } catch(e) { 
+            showToast("初始化失败"); 
+            return false;
+        }
+    }
+
+    // 主页面内的增删改后续动作依旧保持流畅的就地更新，无需使用 preload 包装
+    async function startSync() {
+        try {
+            let list = await getLatest();
+            render(list);
+        } catch(e) {
+            document.getElementById('list-container').innerHTML = '<div class="status-msg">同步失败</div>';
+        }
     }
 
     function handleSearch(val) { const query = (val || "").toLowerCase().trim(); if (!query) { render(CACHED_LIST); return; } render(CACHED_LIST.filter(item => item.name.toLowerCase().includes(query) || (item.user && item.user.toLowerCase().includes(query))), true); }

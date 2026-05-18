@@ -559,29 +559,14 @@
         #setup-area { animation: fadeInFlag 0.4s ease forwards; width: 100%; margin-bottom: 12px; }
         @keyframes fadeInFlag { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
         
+        /* 去除了 hover 时的 text-decoration: underline 下划线逻辑 */
         #reset-link { 
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important; 
-            font-weight: 500; padding: 8px 12px; display: inline-block; text-align: center; margin-top: 16px !important; width: 100%; background: transparent !important; font-family: var(--font-apple);
+            font-weight: 500; margin-top: 16px !important; background: transparent !important; font-family: var(--font-apple);
+            display: inline-block; text-align: center; width: auto; align-self: center; border: none !important; padding: 0 !important;
         }
         #reset-link:hover { opacity: 1 !important; color: var(--danger) !important; }
         #reset-link:active { color: var(--danger) !important; transform: scale(0.97); }
-
-        button, input, textarea, .action-btn, .tool-btn, .info-block-item {
-            -webkit-tap-highlight-color: transparent !important;
-            outline: none !important;
-        }
-        .primary-btn {
-            transition: opacity 0.2s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease !important;
-        }
-        .primary-btn:not(:disabled):active {
-            transform: scale(0.96);
-            opacity: 0.9;
-        }
-        .primary-btn:disabled {
-            opacity: 0.4;
-            transform: scale(1) !important;
-            cursor: not-allowed;
-        }
     </style>
 </head>
 <body>
@@ -690,7 +675,6 @@
             </button>
         </div>
         <div class="modal-action-row">
-            <button class="secondary-text-btn" onclick="toggleModal('hard-reset', false)">取消</button>
             <button class="primary-btn" style="background:var(--danger)" onclick="hardReset()">确定重置</button>
         </div>
     </div>

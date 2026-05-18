@@ -29,10 +29,13 @@
             -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; overflow-x: hidden;
         }
         
+        /* 锁死底层滚动 */
         body.modal-open-fixed {
             position: fixed !important;
             left: 0 !important;
+            top: 0 !important;
             width: 100% !important;
+            height: 100% !important;
             overflow: hidden !important;
         }
 
@@ -71,7 +74,6 @@
 
         .brand-name { font-size: 19px; font-weight: 800; letter-spacing: 0.25em; text-transform: uppercase; font-family: var(--font-apple); line-height: 1; }
         
-        /* 强化点 1：在未验证解锁前，绝对不让 main-ui 的任何隐式图层和遮罩影响到 auth-ui 的点击 */
         body:not(.unlocked) .page-wrapper,
         body:not(.unlocked) .modal-overlay {
             display: none !important;
@@ -142,30 +144,51 @@
         .primary-btn { width: 100%; height: 50px; background: var(--accent); border: none; border-radius: var(--radius-md); color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.3s; font-family: var(--font-apple); }
         .primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+        /* ================= 优化重构：全局模态框容器架构 ================= */
         .modal-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0, 0, 0, 0.15); z-index: 200; display: none; 
             align-items: center; justify-content: center;
             padding: var(--side-gap);
-            overflow-y: auto; -webkit-overflow-scrolling: touch;
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            overflow: hidden; /* 防止外层视口滚动穿透 */
         }
         
         .page-modal-content { 
-            width: 100%; max-width: 440px; display: flex; flex-direction: column; text-align: left;
+            width: 100%; max-width: 440px; 
+            display: flex; flex-direction: column; text-align: left;
             background: #ffffff; border-radius: 24px; padding: 24px; position: relative;
             box-shadow: 0 12px 40px rgba(0,0,0,0.12); border: 1px solid rgba(0,0,0,0.05);
-            max-height: calc(100vh - 40px); overflow-y: auto;
+            max-height: calc(100vh - 40px); 
             animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            overflow: hidden; /* 强制内容不溢出卡片框 */
         }
-        .page-modal-content::-webkit-scrollbar { width: 4px; }
-        .page-modal-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 10px; }
 
+        /* 新增：独立的内部局部滚动槽 */
+        .modal-scroll-area {
+            width: 100%;
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch; /* 允许 iOS 丝滑局部滚动 */
+            padding-right: 2px;
+        }
+        .modal-scroll-area::-webkit-scrollbar { width: 4px; }
+        .modal-scroll-area::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 10px; }
+
+        /* 标题头常驻固定样式 */
+        .modal-page-header { 
+            margin-bottom: 20px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; height: 40px; 
+            flex-shrink: 0; /* 绝不压缩标题栏高度 */
+        }
+        .modal-header-left { display: flex; align-items: center; gap: 12px; height: 40px; }
+        .page-modal-content h3 { font-size: 20px; font-weight: 700; color: #1d1d1f; margin: 0; letter-spacing: -0.5px; font-family: var(--font-apple); line-height: 1.2; }
+
+        /* 右上角关闭按钮 */
         .modal-close-x {
-            position: absolute; top: 29px; right: 24px; width: 30px; height: 30px;
+            position: absolute; top: 24px; right: 24px; width: 30px; height: 30px;
             border-radius: 50%; background: rgba(0, 0, 0, 0.05); color: #86868b;
             display: flex; align-items: center; justify-content: center; cursor: pointer;
-            border: none; z-index: 10; transition: background 0.2s, color 0.2s;
+            border: none; z-index: 11; transition: background 0.2s, color 0.2s;
         }
         .modal-close-x:active { background: rgba(0, 0, 0, 0.1); color: #1d1d1f; }
 
@@ -174,10 +197,7 @@
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        .modal-page-header { margin-bottom: 24px; display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; height: 40px; }
-        .modal-header-left { display: flex; align-items: center; gap: 12px; height: 40px; }
-        .page-modal-content h3 { font-size: 20px; font-weight: 700; color: #1d1d1f; margin: 0; letter-spacing: -0.5px; font-family: var(--font-apple); line-height: 1.2; }
-
+        /* ================= 移动端二级页面自适应完美适配 ================= */
         @media (max-width: 480px) {
             .modal-overlay { 
                 background: #f5f5f7; 
@@ -185,14 +205,15 @@
                 align-items: flex-start; 
             }
             .page-modal-content { 
-                max-height: 100%; 
+                max-height: 100vh; 
                 min-height: 100vh;
+                height: 100vh;
                 box-shadow: none; 
                 border: none; 
-                padding: 0 var(--side-gap) 40px; 
-                background: transparent; 
+                padding: 0 var(--side-gap) calc(20px + env(safe-area-inset-bottom)); 
+                background: #f5f5f7; 
                 animation: none; 
-                overflow-y: visible; 
+                border-radius: 0;
             }
             
             .modal-page-header { 
@@ -202,8 +223,11 @@
                 justify-content: space-between !important; 
                 gap: 12px !important; 
                 padding: calc(16px + env(safe-area-inset-top)) 0 16px !important; 
-                margin-bottom: 16px !important; 
+                margin-bottom: 12px !important; 
                 height: calc(72px + env(safe-area-inset-top)) !important; 
+                background: #f5f5f7;
+                position: relative;
+                z-index: 10;
             }
 
             .modal-header-left {
@@ -213,8 +237,11 @@
                 height: 40px !important; 
             }
             
+            /* 移动端下将关闭按钮拉回到顶栏操作流中，固定死不随内容滚动 */
             .modal-close-x { 
-                position: static !important; 
+                position: absolute !important; 
+                top: calc(16px + env(safe-area-inset-top)) !important;
+                right: 0 !important;
                 width: 40px !important; 
                 height: 40px !important; 
                 border-radius: 10px !important;
@@ -231,6 +258,12 @@
                 color: #1d1d1f !important; 
                 margin: 0 !important;
                 line-height: 1 !important;
+            }
+
+            .modal-scroll-area {
+                padding-bottom: 20px;
+                /* 关键：内容不足时不触发弹性滚动，阻断幽灵回弹 */
+                overscroll-behavior-y: contain; 
             }
         }
 
@@ -322,12 +355,7 @@
         }
         #edit-note { font-family: var(--font-apple) !important; font-size: 15px !important; }
 
-        .info-block-content::-webkit-scrollbar, .info-block-item textarea::-webkit-scrollbar { width: 4px; }
-        .info-block-content::-webkit-scrollbar-track, .info-block-item textarea::-webkit-scrollbar-track { background: transparent; }
-        .info-block-content::-webkit-scrollbar-thumb, .info-block-item textarea::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0); border-radius: 10px; transition: background 0.25s ease; }
-        .info-block-item:hover .info-block-content::-webkit-scrollbar-thumb, .info-block-item:hover textarea::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); }
-
-        .modal-action-row { display: flex; gap: 12px; width: 100%; margin-top: 14px; }
+        .modal-action-row { display: flex; gap: 12px; width: 100%; margin-top: 14px; flex-shrink: 0; }
         .modal-action-row .primary-btn, .modal-action-row .secondary-text-btn, .modal-action-row .danger-btn { flex: 1; height: 50px; border-radius: var(--radius-md); font-size: 16px; font-weight: 600; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: var(--font-apple); }
         .modal-action-row .secondary-text-btn { background: rgba(0, 0, 0, 0.04); color: #1d1d1f; transition: background 0.2s, transform 0.1s; }
         .modal-action-row .secondary-text-btn:active { background: rgba(0, 0, 0, 0.08); transform: scale(0.98); }
@@ -449,24 +477,28 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         </div>
-        <div class="apple-group-box">
-            <div class="info-block-item editable-box">
-                <div class="info-block-label">应用名称</div>
-                <input type="text" id="add-name" placeholder="输入应用或网站名称">
-            </div>
-            <div class="info-block-item editable-box">
-                <div class="info-block-label">用户名 / 账号</div>
-                <input type="text" id="add-user" placeholder="输入登录账号">
-            </div>
-            <div class="info-block-item editable-box">
-                <div class="info-block-label">登录密码</div>
-                <input type="password" id="add-pass" placeholder="输入安全密码">
-            </div>
-            <div class="info-block-item editable-box">
-                <div class="info-block-label">备注信息 (选填)</div>
-                <textarea id="add-note" class="add-note-input" placeholder="可在此记录安全问题、附加密钥等长文本..."></textarea>
+        
+        <div class="modal-scroll-area">
+            <div class="apple-group-box">
+                <div class="info-block-item editable-box">
+                    <div class="info-block-label">应用名称</div>
+                    <input type="text" id="add-name" placeholder="输入应用或网站名称">
+                </div>
+                <div class="info-block-item editable-box">
+                    <div class="info-block-label">用户名 / 账号</div>
+                    <input type="text" id="add-user" placeholder="输入登录账号">
+                </div>
+                <div class="info-block-item editable-box">
+                    <div class="info-block-label">登录密码</div>
+                    <input type="password" id="add-pass" placeholder="输入安全密码">
+                </div>
+                <div class="info-block-item editable-box">
+                    <div class="info-block-label">备注信息 (选填)</div>
+                    <textarea id="add-note" class="add-note-input" placeholder="可在此记录安全问题、附加密钥等长文本..."></textarea>
+                </div>
             </div>
         </div>
+        
         <div class="modal-action-row">
             <button class="secondary-text-btn" onclick="toggleModal('add-modal', false)">取消</button>
             <button class="primary-btn" id="save-btn" onclick="save()">同步云端</button>
@@ -481,7 +513,7 @@
                 <div class="modal-icon-wrapper danger-style">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                 </div>
-                <h3 style="color:var(--danger)">确定重置配置吗？</h3>
+                <h3>确定重置配置吗？</h3>
             </div>
             <button class="modal-close-x" onclick="toggleModal('hard-reset', false)">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -506,26 +538,28 @@
             </button>
         </div>
         
-        <div class="info-cell-group">
-            <div class="info-block-item" id="box-name" onclick="handleCellClick('name', '名称')">
-                <div class="info-block-label">应用名称</div>
-                <div class="info-block-content" id="detail-name"></div>
-                <input type="text" id="edit-name" style="display:none;">
-            </div>
-            <div class="info-block-item" id="box-user" onclick="handleCellClick('user', '账号')">
-                <div class="info-block-label">登录账号</div>
-                <div class="info-block-content" id="detail-user"></div>
-                <input type="text" id="edit-user" style="display:none;">
-            </div>
-            <div class="info-block-item" id="box-pass" onclick="handleCellClick('pass', '密码')">
-                <div class="info-block-label">安全密码</div>
-                <div class="info-block-content highlight" id="detail-pass"></div>
-                <input type="text" id="edit-pass" style="display:none;">
-            </div>
-            <div class="info-block-item" id="box-note" onclick="handleCellClick('note', '备注')">
-                <div class="info-block-label">备注信息</div>
-                <div class="info-block-content note-style note-container-fixed" id="detail-note"></div>
-                <textarea id="edit-note" class="add-note-input" style="display:none;" placeholder="可在此记录安全问题等长文本..."></textarea>
+        <div class="modal-scroll-area">
+            <div class="info-cell-group">
+                <div class="info-block-item" id="box-name" onclick="handleCellClick('name', '名称')">
+                    <div class="info-block-label">应用名称</div>
+                    <div class="info-block-content" id="detail-name"></div>
+                    <input type="text" id="edit-name" style="display:none;">
+                </div>
+                <div class="info-block-item" id="box-user" onclick="handleCellClick('user', '账号')">
+                    <div class="info-block-label">登录账号</div>
+                    <div class="info-block-content" id="detail-user"></div>
+                    <input type="text" id="edit-user" style="display:none;">
+                </div>
+                <div class="info-block-item" id="box-pass" onclick="handleCellClick('pass', '密码')">
+                    <div class="info-block-label">安全密码</div>
+                    <div class="info-block-content highlight" id="detail-pass"></div>
+                    <input type="text" id="edit-pass" style="display:none;">
+                </div>
+                <div class="info-block-item" id="box-note" onclick="handleCellClick('note', '备注')">
+                    <div class="info-block-label">备注信息</div>
+                    <div class="info-block-content note-style note-container-fixed" id="detail-note"></div>
+                    <textarea id="edit-note" class="add-note-input" style="display:none;" placeholder="可在此记录安全问题等长文本..."></textarea>
+                </div>
             </div>
         </div>
 
@@ -583,10 +617,8 @@
     let pendingDeleteCardId = null, currentEditId = null, CACHED_LIST = []; 
     let lastScrollY = 0, isInsideEditMode = false, activeItemBackup = null; 
 
-    // 强化点 2：针对移动端内核的表单失焦复位监听（彻底粉碎点击热区不贴合错位问题）
     document.addEventListener('focusout', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            // 当虚拟键盘收起时，强行让窗口轻微滚动回归原位，刷新 WebKit 的 Visual Viewport 热区
             setTimeout(() => {
                 const scrollHeight = document.documentElement.scrollTop || document.body.scrollTop || 0;
                 window.scrollTo(0, Math.max(scrollHeight - 1, 0));
@@ -598,9 +630,12 @@
         if (pendingDeleteCardId && !e.target.closest('#detail-del-btn')) { clearPendingDelete(); }
     });
 
+    // 强化滚动锁：当二级页面开启时，强制拦截任何非局部滚动区域的滚轮与手势穿透
     document.addEventListener('touchmove', (e) => {
         if (document.body.classList.contains('modal-open-fixed')) {
-            if (!e.target.closest('.modal-overlay')) { e.preventDefault(); }
+            if (!e.target.closest('.modal-scroll-area')) { 
+                e.preventDefault(); 
+            }
         }
     }, { passive: false });
 
@@ -823,10 +858,15 @@
     
     function softLock() { location.reload(); }
     
+    // 强化模态框开关控制：重设内部滚动归零并严格控制底层 fixed
     function toggleModal(id, show) { 
         const overlay = document.getElementById(id + '-overlay');
+        const modalContent = overlay.querySelector('.page-modal-content');
+        const scrollArea = overlay.querySelector('.modal-scroll-area');
+        
         if (show) {
             lastScrollY = window.scrollY;
+            if(scrollArea) scrollArea.scrollTop = 0; // 打开时归位局部滚动槽
             overlay.style.display = 'flex';
             document.body.style.top = `-${lastScrollY}px`;
             document.body.classList.add('modal-open-fixed');
